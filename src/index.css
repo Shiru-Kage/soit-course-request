@@ -13,6 +13,7 @@
   --bg-card-hover: rgba(28, 36, 58, 0.85);
   --bg-subtle: #161c2e;
   --bg-active: #222b42;
+  --bg-input: #121828;
 
   --border-hairline: rgba(255, 255, 255, 0.08);
   --border-medium: rgba(255, 255, 255, 0.14);
@@ -74,6 +75,7 @@
   --bg-card-hover: #ffffff;
   --bg-subtle: #f4efeb;
   --bg-active: #ebe2dc;
+  --bg-input: #f8f4f0;
 
   --border-hairline: rgba(0, 0, 0, 0.08);
   --border-medium: rgba(0, 0, 0, 0.14);
@@ -729,6 +731,45 @@ button {
   background-color: rgba(239, 68, 68, 0.08);
 }
 
+
+/* Live Indicator Pill */
+.live-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--crimson-bright);
+  background: rgba(185, 28, 28, 0.08);
+  border: 1px solid var(--crimson-border);
+  border-radius: var(--radius-full);
+}
+
+[data-theme='light'] .live-pill,
+[data-theme='mapua'] .live-pill {
+  color: #991b1b !important;
+  background: rgba(153, 27, 27, 0.06) !important;
+  border-color: rgba(153, 27, 27, 0.22) !important;
+}
+
+.live-status-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--crimson-bright);
+  box-shadow: 0 0 8px var(--crimson-glow);
+  display: inline-block;
+}
+
+[data-theme='light'] .live-status-dot,
+[data-theme='mapua'] .live-status-dot {
+  background: #b91c1c;
+  box-shadow: 0 0 6px rgba(185, 28, 28, 0.4);
+}
+
 /* Program Selector Bento Grid */
 .bento-programs {
   display: grid;
@@ -869,6 +910,29 @@ button {
 .dept-chip:hover {
   color: var(--text-pure);
   background-color: var(--bg-active);
+}
+
+
+[data-theme='light'] .dept-chip,
+[data-theme='mapua'] .dept-chip {
+  background-color: #f1ece7 !important;
+  color: #334155 !important;
+  border: 1px solid rgba(0, 0, 0, 0.16) !important;
+  font-weight: 700 !important;
+}
+
+[data-theme='light'] .dept-chip:hover,
+[data-theme='mapua'] .dept-chip:hover {
+  background-color: #e5ded7 !important;
+  color: #0f172a !important;
+  border-color: rgba(0, 0, 0, 0.28) !important;
+}
+
+[data-theme='light'] .dept-chip.active,
+[data-theme='mapua'] .dept-chip.active {
+  background: var(--crimson-core) !important;
+  color: #ffffff !important;
+  border-color: var(--crimson-core) !important;
 }
 
 .dept-chip.active {
@@ -2047,4 +2111,145 @@ html, body {
   background: var(--emerald-core);
   opacity: 0.5;
   animation: pulsePing 2s infinite ease-out;
+}
+
+[data-theme='light'] .dossier-card,
+[data-theme='mapua'] .dossier-card {
+  background-color: #ffffff !important;
+  border: 1px solid rgba(0, 0, 0, 0.12) !important;
+  box-shadow: 0 6px 24px -6px rgba(0, 0, 0, 0.08), 0 2px 6px -1px rgba(0, 0, 0, 0.04) !important;
+}
+
+/* Dedicated High-Contrast Boarding Pass Classes */
+.ticket-field-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  gap: 0.65rem;
+  padding: 0.85rem 1rem;
+  background: var(--bg-input);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-hairline);
+  font-size: 0.78rem;
+}
+
+[data-theme='light'] .ticket-field-grid,
+[data-theme='mapua'] .ticket-field-grid {
+  background: #fbf8f5 !important;
+  border: 1px solid rgba(0, 0, 0, 0.1) !important;
+}
+
+.ticket-field-label {
+  font-size: 0.68rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  display: block;
+  margin-bottom: 0.2rem;
+  color: var(--text-muted);
+}
+
+[data-theme='light'] .ticket-field-label,
+[data-theme='mapua'] .ticket-field-label {
+  color: #475569 !important;
+}
+
+.ticket-field-sub {
+  font-size: 0.73rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+[data-theme='light'] .ticket-field-sub,
+[data-theme='mapua'] .ticket-field-sub {
+  color: #334155 !important;
+}
+
+.ticket-date {
+  font-size: 0.74rem;
+  font-family: var(--font-mono);
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+[data-theme='light'] .ticket-date,
+[data-theme='mapua'] .ticket-date {
+  color: #475569 !important;
+}
+
+.ticket-stub-label {
+  font-size: 0.68rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-muted);
+}
+
+[data-theme='light'] .ticket-stub-label,
+[data-theme='mapua'] .ticket-stub-label {
+  color: #475569 !important;
+}
+
+.ticket-barcode-tag {
+  font-size: 0.68rem;
+  font-family: var(--font-mono);
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: var(--text-muted);
+}
+
+[data-theme='light'] .ticket-barcode-tag,
+[data-theme='mapua'] .ticket-barcode-tag {
+  color: #475569 !important;
+}
+
+[data-theme='light'] .boarding-pass-ticket,
+[data-theme='mapua'] .boarding-pass-ticket {
+  background: #ffffff !important;
+  border: 1px solid rgba(0, 0, 0, 0.12) !important;
+  box-shadow: 0 10px 28px -8px rgba(0, 0, 0, 0.08), 0 1px 3px 0 rgba(0, 0, 0, 0.04) !important;
+}
+
+[data-theme='light'] .ticket-stub,
+[data-theme='mapua'] .ticket-stub {
+  background: #fbf8f5 !important;
+  border-left: 1px dashed rgba(0, 0, 0, 0.16) !important;
+}
+
+[data-theme='light'] .ticket-divider-perforated,
+[data-theme='mapua'] .ticket-divider-perforated {
+  border-left: 2px dashed rgba(0, 0, 0, 0.16) !important;
+}
+
+[data-theme='light'] .ticket-notch-top,
+[data-theme='light'] .ticket-notch-bottom,
+[data-theme='mapua'] .ticket-notch-top,
+[data-theme='mapua'] .ticket-notch-bottom {
+  background: #f6efe9 !important;
+  border: 1px solid rgba(0, 0, 0, 0.16) !important;
+}
+
+[data-theme='light'] .rubber-stamp.gathering,
+[data-theme='mapua'] .rubber-stamp.gathering {
+  color: #b45309 !important;
+  border-color: #b45309 !important;
+  background: rgba(180, 83, 9, 0.06) !important;
+  box-shadow: 0 0 0 1px #b45309 !important;
+}
+
+[data-theme='light'] .decorative-barcode,
+[data-theme='mapua'] .decorative-barcode {
+  color: #334155 !important;
+  opacity: 0.75 !important;
+}
+
+[data-theme='light'] .search-input-sleek,
+[data-theme='mapua'] .search-input-sleek {
+  background-color: #ffffff !important;
+  border-color: rgba(0, 0, 0, 0.16) !important;
+  color: #0f172a !important;
+}
+
+[data-theme='light'] .search-input-sleek::placeholder,
+[data-theme='mapua'] .search-input-sleek::placeholder {
+  color: #64748b !important;
 }

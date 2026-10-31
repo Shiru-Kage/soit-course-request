@@ -217,7 +217,7 @@ export default function StatusTracker({
         }}>
           Petition Ledger & Removal Portal
         </h1>
-        <p style={{ fontSize: '0.9rem', color: 'var(--text-muted)', maxWidth: '820px', lineHeight: 1.5, margin: 0 }}>
+        <p style={{ fontSize: '0.9rem', color: 'var(--text-main)', maxWidth: '820px', lineHeight: 1.5, margin: 0 }}>
           {currentUser?.role === 'chair' ? (
             isSuperAdmin(currentUser.email) ? (
               <>Filter petitions by department (<strong>CS, IT, DS, EMC, IS</strong>) or by specific course. As <strong>SOIT General Administration ({currentUser.email})</strong>, you can remove petitions across all courses.</>
@@ -347,9 +347,7 @@ export default function StatusTracker({
           borderTop: '1px solid var(--border-hairline)'
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', flexWrap: 'wrap' }}>
-            <span style={{ fontSize: '0.74rem', fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em', marginRight: '0.2rem' }}>
-              Department:
-            </span>
+            <span style={{ fontSize: '0.74rem', fontWeight: 800, color: 'var(--text-main)', textTransform: 'uppercase', letterSpacing: '0.04em', marginRight: '0.2rem' }}>Department:</span>
             {LEDGER_DEPARTMENTS.map(d => {
               const countForDept = d.id === 'ALL'
                 ? requests.length
@@ -405,7 +403,7 @@ export default function StatusTracker({
 
       {/* Results Header */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 0.5rem', flexWrap: 'wrap', gap: '0.5rem' }}>
-        <div style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--text-muted)' }}>
+        <div style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--text-main)' }}>
           {selectedCourse !== 'ALL' ? (
             <span>Showing petitions for course <strong style={{ color: 'var(--crimson-bright)' }}>{selectedCourse}</strong>:</span>
           ) : selectedDept !== 'ALL' ? (
@@ -474,7 +472,7 @@ export default function StatusTracker({
                           </span>
                         )}
                       </div>
-                      <span style={{ fontSize: '0.72rem', color: 'var(--text-faint)', fontFamily: 'var(--font-mono)' }}>
+                      <span className="ticket-date">
                         {req.createdAt ? new Date(req.createdAt).toLocaleDateString() : 'Active Term'}
                       </span>
                     </div>
@@ -490,21 +488,21 @@ export default function StatusTracker({
                       </div>
                     </div>
 
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '0.6rem', padding: '0.75rem 0.9rem', background: 'var(--bg-input)', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-hairline)', fontSize: '0.78rem' }}>
+                    <div className="ticket-field-grid">
                       <div>
-                        <span style={{ fontSize: '0.68rem', fontWeight: 800, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.04em', display: 'block', marginBottom: '0.15rem' }}>STUDENT</span>
+                        <span className="ticket-field-label">STUDENT</span>
                         <p style={{ margin: 0, fontWeight: 700, color: 'var(--text-pure)', fontSize: '0.86rem' }}>{req.lastName}, {req.firstName}</p>
-                        <span style={{ fontSize: '0.72rem', fontFamily: 'var(--font-mono)', color: '#cbd5e1', fontWeight: 600 }}>{req.studentNumber}</span>
+                        <span className="ticket-field-sub" style={{ fontFamily: 'var(--font-mono)' }}>{req.studentNumber}</span>
                       </div>
                       <div>
-                        <span style={{ fontSize: '0.68rem', fontWeight: 800, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.04em', display: 'block', marginBottom: '0.15rem' }}>PROGRAM & REMAINING</span>
+                        <span className="ticket-field-label">PROGRAM & REMAINING</span>
                         <p style={{ margin: 0, fontWeight: 700, color: 'var(--crimson-bright)', fontSize: '0.86rem' }}>{req.program}</p>
-                        <span style={{ fontSize: '0.72rem', color: '#cbd5e1', fontWeight: 600 }}>{req.unitsLeft} units left</span>
+                        <span className="ticket-field-sub">{req.unitsLeft} units left</span>
                       </div>
                       <div>
-                        <span style={{ fontSize: '0.68rem', fontWeight: 800, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.04em', display: 'block', marginBottom: '0.15rem' }}>CURRENT QUOTA</span>
-                        <p style={{ margin: 0, fontWeight: 700, color: isMet ? 'var(--emerald-core)' : '#f59e0b', fontSize: '0.86rem' }}>{count} / {MIN_STUDENT_THRESHOLD} Students</p>
-                        <span style={{ fontSize: '0.72rem', color: '#cbd5e1', fontWeight: 600 }}>{pct}% Threshold</span>
+                        <span className="ticket-field-label">CURRENT QUOTA</span>
+                        <p style={{ margin: 0, fontWeight: 700, color: isMet ? 'var(--emerald-core)' : 'var(--gold-core)', fontSize: '0.86rem' }}>{count} / {MIN_STUDENT_THRESHOLD} Students</p>
+                        <span className="ticket-field-sub">{pct}% Threshold</span>
                       </div>
                     </div>
 
@@ -534,7 +532,7 @@ export default function StatusTracker({
                   {/* Stub */}
                   <div className="ticket-stub">
                     <div style={{ width: '100%' }}>
-                      <span style={{ fontSize: '0.68rem', fontWeight: 800, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.05em' }}>PASS REF</span>
+                      <span className="ticket-stub-label">PASS REF</span>
                       <div style={{ fontSize: '1.05rem', fontWeight: 800, fontFamily: 'var(--font-mono)', color: 'var(--crimson-bright)', margin: '0.15rem 0' }}>
                         {req.id}
                       </div>
@@ -544,7 +542,7 @@ export default function StatusTracker({
                       <div className="decorative-barcode">
                         |||| || |||||| | |||
                       </div>
-                      <span style={{ fontSize: '0.68rem', fontFamily: 'var(--font-mono)', fontWeight: 700, color: '#94a3b8', letterSpacing: '0.05em' }}>SOIT-PASS-GATE</span>
+                      <span className="ticket-barcode-tag">SOIT-PASS-GATE</span>
                     </div>
 
                     <button
