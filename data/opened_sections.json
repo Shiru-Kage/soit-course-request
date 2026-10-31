@@ -1,14 +1,5 @@
 [
   {
-    "code": "ITS121-1L",
-    "title": "Web Systems 1",
-    "dept": "IT",
-    "units": 3,
-    "actionType": "CONSULTATION",
-    "openedBy": "jpqtomas@mapua.edu.ph",
-    "openedAt": "2026-10-31T06:24:13.088Z"
-  },
-  {
     "code": "CSS122P",
     "title": "Computer Programming 2",
     "dept": "CS",
