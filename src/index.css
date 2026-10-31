@@ -2045,38 +2045,6 @@ html, body {
   user-select: none;
 }
 
-/* ==========================================================================
-   ARCHITECTURAL X-RAY / BLUEPRINT MODE HUD
-   ========================================================================== */
-[data-blueprint-mode="active"] body {
-  background-color: #061121 !important;
-  background-image: 
-    linear-gradient(rgba(56, 189, 248, 0.1) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(56, 189, 248, 0.1) 1px, transparent 1px) !important;
-  background-size: 28px 28px !important;
-  color: #e0f2fe !important;
-}
-
-[data-blueprint-mode="active"] .dossier-card,
-[data-blueprint-mode="active"] .course-tile,
-[data-blueprint-mode="active"] .navbar-inner,
-[data-blueprint-mode="active"] .boarding-pass-ticket {
-  border: 1px dashed #0284c7 !important;
-  background: rgba(8, 20, 39, 0.92) !important;
-  box-shadow: 0 0 20px rgba(56, 189, 248, 0.1) !important;
-}
-
-[data-blueprint-mode="active"] .blueprint-tag {
-  display: inline-block !important;
-  font-family: var(--font-mono) !important;
-  font-size: 0.65rem !important;
-  color: #38bdf8 !important;
-  letter-spacing: 0.05em !important;
-}
-
-.blueprint-tag {
-  display: none;
-}
 
 /* In-Session Presence Beacon */
 .presence-beacon {

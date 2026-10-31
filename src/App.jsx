@@ -11,7 +11,6 @@ import OpenedSectionsPage from './components/OpenedSectionsPage';
 import ConfirmationModal from './components/ConfirmationModal';
 import InteractiveAtmosphere from './components/InteractiveAtmosphere';
 import MilestoneCelebration from './components/MilestoneCelebration';
-import BlueprintMode from './components/BlueprintMode';
 import { SOIT_COURSES } from './data/courses';
 import { 
   fetchAllRequests, 
@@ -626,7 +625,6 @@ export default function App() {
           </p>
         </div>
       </footer>
-      <BlueprintMode />
     </div>
   );
 }
