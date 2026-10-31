@@ -1,3 +1,4 @@
+import { getFirebaseDb, doc, getDoc, setDoc } from './firebase';
 // SOIT Dynamic Enrollment System - Administrator & Faculty Authentication Service
 
 export const SUPER_ADMIN_EMAIL = 'imppcabalag@gmail.com';
@@ -346,8 +347,26 @@ export async function verifyAdminCredentials(email, password) {
     return { success: false, error: 'Please enter your password.' };
   }
 
+  // 1. Check Cloud Firestore for latest cloud-synchronized password
+  let cloudPass = null;
+  try {
+    const db = getFirebaseDb();
+    if (db) {
+      const snap = await getDoc(doc(db, 'settings', 'chair_auth'));
+      if (snap.exists()) {
+        const data = snap.data();
+        if (data && data.passwords && data.passwords[norm]) {
+          cloudPass = data.passwords[norm];
+          saveStoredPassword(norm, cloudPass);
+        }
+      }
+    }
+  } catch (err) {
+    console.warn('Note: Checking local cache for chair password (offline / fallback mode):', err);
+  }
+
   const passwords = getStoredPasswords();
-  const expected = passwords[norm] || DEFAULT_ADMIN_PASSWORD;
+  const expected = cloudPass || passwords[norm] || DEFAULT_ADMIN_PASSWORD;
 
   if (inputPass === expected) {
     return { success: true, email: norm };
@@ -370,8 +389,7 @@ export async function changeCurrentAdminPassword(email, currentPassword, newPass
     return { success: false, error: 'New password must be at least 4 characters long.' };
   }
 
-  saveStoredPassword(email, cleanNew);
-  return { success: true, message: 'Password updated successfully!' };
+  return resetAdminPassword(email, cleanNew);
 }
 
 export async function resetAdminPassword(email, newPassword) {
@@ -385,8 +403,31 @@ export async function resetAdminPassword(email, newPassword) {
     return { success: false, error: 'New password must be at least 4 characters long.' };
   }
 
+  // 1. Save locally
   saveStoredPassword(norm, cleanPass);
-  return { success: true, message: 'Password reset successful. You may now sign in with your new password.' };
+
+  // 2. Synchronize to Cloud Firestore
+  try {
+    const db = getFirebaseDb();
+    if (db) {
+      const passRef = doc(db, 'settings', 'chair_auth');
+      const snap = await getDoc(passRef);
+      const existingData = snap.exists() ? snap.data() : { passwords: {} };
+      const updatedPasswords = {
+        ...(existingData.passwords || {}),
+        [norm]: cleanPass
+      };
+      await setDoc(passRef, {
+        passwords: updatedPasswords,
+        lastUpdated: new Date().toISOString(),
+        updatedBy: norm
+      }, { merge: true });
+    }
+  } catch (err) {
+    console.warn('Note: Could not sync updated chair password to Firestore:', err);
+  }
+
+  return { success: true, message: 'Password reset successful! You may now sign in with your new password.' };
 }
 
 export async function sendPasswordResetCode(email) {
@@ -398,42 +439,112 @@ export async function sendPasswordResetCode(email) {
     };
   }
 
+  // 6-digit numeric verification code
   const code = Math.floor(100000 + Math.random() * 900000).toString();
-  const expiresAt = Date.now() + 15 * 60 * 1000;
+  const expiresAt = Date.now() + 15 * 60 * 1000; // 15 mins validity
 
+  // 1. Save in local storage
   try {
     const existing = JSON.parse(localStorage.getItem(STORAGE_ADMIN_RESET_CODES_KEY) || '{}');
     existing[norm] = { code, expiresAt };
     localStorage.setItem(STORAGE_ADMIN_RESET_CODES_KEY, JSON.stringify(existing));
   } catch (e) {
-    console.warn('Error saving reset code:', e);
+    console.warn('Error saving reset code locally:', e);
+  }
+
+  // 2. Synchronize reset code to Cloud Firestore
+  try {
+    const db = getFirebaseDb();
+    if (db) {
+      const resetRef = doc(db, 'settings', 'chair_reset_codes');
+      const snap = await getDoc(resetRef);
+      const existingCodes = snap.exists() ? snap.data() : {};
+      const safeKey = norm.replace(/[^a-zA-Z0-9]/g, '_');
+      await setDoc(resetRef, {
+        ...existingCodes,
+        [safeKey]: { code, expiresAt, email: norm, requestedAt: new Date().toISOString() }
+      }, { merge: true });
+    }
+  } catch (e) {
+    console.warn('Error syncing reset code to Firestore:', e);
+  }
+
+  // 3. Dispatch actual email notification via ShipMyForm and FormSubmit
+  const timestamp = new Date().toLocaleString('en-US', { timeZone: 'Asia/Manila' });
+  const payload = {
+    _subject: `[Mapúa SOIT Course Request] Program Chair Password Reset Code: ${code}`,
+    "Recipient": norm,
+    "Verification Code": code,
+    "Purpose": "SOIT Course Request - Program Chair / Faculty Password Recovery",
+    "Expiration": "15 Minutes",
+    "Requested At": `${timestamp} (PHT)`,
+    "Security Note": "If you did not initiate this password reset, your account credentials remain unchanged."
+  };
+
+  try {
+    await fetch(`https://shipmyform.com/to/${encodeURIComponent(norm)}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+  } catch (e) {
+    console.warn('ShipMyForm reset email dispatch error, trying FormSubmit:', e);
+  }
+
+  try {
+    await fetch(`https://formsubmit.co/ajax/${encodeURIComponent(norm)}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+      body: JSON.stringify({
+        ...payload,
+        _template: 'box',
+        _captcha: 'false',
+        _replyto: 'noreply-soit@mapua.edu.ph'
+      })
+    });
+  } catch (e) {
+    console.warn('FormSubmit reset email dispatch warning:', e);
   }
 
   return {
     success: true,
-    code,
-    message: `Verification code sent to ${norm}. Code is valid for 15 minutes.`
+    code, // Provided for instant convenience
+    message: `Verification code sent to ${norm}. Please check your inbox or spam folder.`
   };
 }
 
-export function verifyResetCode(email, inputCode) {
+export async function verifyResetCode(email, inputCode) {
   const norm = normalizeEmail(email);
+  const cleanCode = String(inputCode || '').trim();
+
+  // 1. Check local storage
   try {
     const existing = JSON.parse(localStorage.getItem(STORAGE_ADMIN_RESET_CODES_KEY) || '{}');
     const record = existing[norm];
-    if (!record) {
-      return { success: false, error: 'No active reset code found. Please request a new code.' };
+    if (record) {
+      if (Date.now() <= record.expiresAt && String(record.code).trim() === cleanCode) {
+        return { success: true };
+      }
     }
-    if (Date.now() > record.expiresAt) {
-      return { success: false, error: 'Verification code has expired. Please request a new code.' };
+  } catch (e) {}
+
+  // 2. Check Cloud Firestore for cross-device verification
+  try {
+    const db = getFirebaseDb();
+    if (db) {
+      const snap = await getDoc(doc(db, 'settings', 'chair_reset_codes'));
+      if (snap.exists()) {
+        const data = snap.data();
+        const safeKey = norm.replace(/[^a-zA-Z0-9]/g, '_');
+        const record = data[safeKey] || data[norm];
+        if (record && Date.now() <= record.expiresAt && String(record.code).trim() === cleanCode) {
+          return { success: true };
+        }
+      }
     }
-    if (String(inputCode || '').trim() !== String(record.code).trim()) {
-      return { success: false, error: 'Incorrect verification code. Please check and try again.' };
-    }
-    return { success: true };
-  } catch (e) {
-    return { success: false, error: 'Failed to verify code. Please try again.' };
-  }
+  } catch (e) {}
+
+  return { success: false, error: 'Incorrect or expired verification code. Please check your email and try again.' };
 }
 
 /**

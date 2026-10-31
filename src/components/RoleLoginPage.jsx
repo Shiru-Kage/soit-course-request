@@ -1224,7 +1224,7 @@ export default function RoleLoginPage({ onLoginStudent, onLoginChair, view: cont
               </div>
             )}
 
-            {devCodeHint && resetStep === 2 && (
+            {Boolean(import.meta.env.DEV) && devCodeHint && resetStep === 2 && (
               <div style={{ 
                 padding: '0.75rem', 
                 background: 'rgba(217, 119, 6, 0.15)', 
