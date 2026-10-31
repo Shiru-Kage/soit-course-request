@@ -1,0 +1,15 @@
+[
+  {
+    "id": "custom_1793421601673",
+    "raw": "TEST101 Course request test",
+    "code": "TEST101",
+    "title": "Course request test",
+    "dept": "IT",
+    "units": 3,
+    "hasLab": false,
+    "isCustom": true,
+    "isAutoCataloged": true,
+    "addedByStudent": "2022104624",
+    "createdAt": "2026-10-31T04:40:01.673Z"
+  }
+]

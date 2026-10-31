@@ -1,0 +1,138 @@
+{
+  "jpqtomas@mapua.edu.ph": {
+    "email": "jpqtomas@mapua.edu.ph",
+    "displayEmail": "JPQTomas@mapua.edu.ph",
+    "name": "John Paul Q. Tomas",
+    "dept": "CS",
+    "programTitle": "Computer Science (CS)",
+    "slots": [
+      {
+        "day": "Monday",
+        "startTime": "10:00 AM",
+        "endTime": "12:00 PM"
+      },
+      {
+        "day": "Wednesday",
+        "startTime": "01:00 PM",
+        "endTime": "04:00 PM"
+      }
+    ],
+    "updatedAt": "2026-10-31T07:50:02.850Z"
+  },
+  "mjcsamonte@mapua.edu.ph": {
+    "email": "mjcsamonte@mapua.edu.ph",
+    "displayEmail": "mjcsamonte@mapua.edu.ph",
+    "name": "Mary Jane C. Samonte",
+    "dept": "IT",
+    "programTitle": "Information Technology (IT)",
+    "slots": [
+      {
+        "day": "Tuesday",
+        "startTime": "09:00 AM",
+        "endTime": "12:00 PM"
+      },
+      {
+        "day": "Thursday",
+        "startTime": "01:00 PM",
+        "endTime": "04:00 PM"
+      }
+    ],
+    "updatedAt": "2026-10-31T07:49:42.282Z"
+  },
+  "rmdadigan@mapua.edu.ph": {
+    "email": "rmdadigan@mapua.edu.ph",
+    "displayEmail": "rmdadigan@mapua.edu.ph",
+    "name": "Robert M. Dadigan",
+    "dept": "DS",
+    "programTitle": "Data Science (DS)",
+    "slots": [
+      {
+        "day": "Monday",
+        "startTime": "01:00 PM",
+        "endTime": "04:00 PM"
+      },
+      {
+        "day": "Friday",
+        "startTime": "09:00 AM",
+        "endTime": "12:00 PM"
+      }
+    ],
+    "updatedAt": "2026-10-31T07:50:24.422Z"
+  },
+  "capascua@mapua.edu.ph": {
+    "email": "capascua@mapua.edu.ph",
+    "displayEmail": "capascua@mapua.edu.ph",
+    "name": "Cristina A. Pascua",
+    "dept": "EMC",
+    "programTitle": "Entertainment & Multimedia Computing (EMC)",
+    "slots": [
+      {
+        "day": "Tuesday",
+        "startTime": "01:00 PM",
+        "endTime": "04:00 PM"
+      },
+      {
+        "day": "Friday",
+        "startTime": "01:00 PM",
+        "endTime": "04:00 PM"
+      }
+    ],
+    "updatedAt": "2026-10-31T07:50:48.034Z"
+  },
+  "gldintal@mapua.edu.ph": {
+    "email": "gldintal@mapua.edu.ph",
+    "displayEmail": "gldintal@mapua.edu.ph",
+    "name": "Grace Lorraine D. Intal",
+    "dept": "IS",
+    "programTitle": "Information Systems (IS)",
+    "slots": [
+      {
+        "day": "Wednesday",
+        "startTime": "09:00 AM",
+        "endTime": "12:00 PM"
+      },
+      {
+        "day": "Thursday",
+        "startTime": "09:00 AM",
+        "endTime": "12:00 PM"
+      }
+    ],
+    "updatedAt": "2026-10-31T07:51:05.277Z"
+  },
+  "csfaculty@mapua.edu.ph": {
+    "email": "csfaculty@mapua.edu.ph",
+    "displayEmail": "csfaculty@mapua.edu.ph",
+    "name": "Prof. Reyes",
+    "dept": "CS",
+    "programTitle": "Computer Science (CS)",
+    "roleType": "Cluster Faculty",
+    "authorizedBy": "jpqtomas@mapua.edu.ph",
+    "createdAt": "2026-10-31T07:53:56.775Z",
+    "slots": [
+      {
+        "day": "Monday",
+        "startTime": "09:00 AM",
+        "endTime": "12:00 PM"
+      }
+    ],
+    "updatedAt": "2026-10-31T07:53:56.781Z"
+  },
+  "eeoreyes@mapua.edu.ph": {
+    "email": "eeoreyes@mapua.edu.ph",
+    "displayEmail": "eeoreyes@mapua.edu.ph",
+    "name": "Elijah Erle O. Reyes",
+    "dept": "CS",
+    "programTitle": "Computer Science (CS)",
+    "roleType": "Cluster Faculty",
+    "authorizedBy": "jpqtomas@mapua.edu.ph",
+    "createdAt": "2026-10-31T07:56:17.336Z",
+    "slots": [
+      {
+        "day": "Monday",
+        "startTime": "09:00 AM",
+        "endTime": "12:00 PM"
+      }
+    ],
+    "updatedAt": "2026-10-31T07:56:17.340Z"
+  }
+}
