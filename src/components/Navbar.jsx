@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { 
   GraduationCap, 
   BookOpen, 
@@ -51,6 +51,15 @@ export default function Navbar({
     return requests.filter(r => String(r.studentNumber).trim() === String(currentUser.studentNumber).trim()).length;
   }, [currentUser, requests]);
   const [showRoleMenu, setShowRoleMenu] = useState(false);
+  const [isScrolled, setIsScrolled] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 40);
+    };
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const handleNavClick = (tab) => {
@@ -64,7 +73,7 @@ export default function Navbar({
   };
 
   return (
-    <header className="navbar-header">
+    <header className={`navbar-header ${isScrolled ? 'navbar-scrolled' : ''}`}>
       <div className="navbar-inner">
         {/* Brand */}
         <div 

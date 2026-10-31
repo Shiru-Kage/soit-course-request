@@ -104,7 +104,7 @@
   --text-muted: #64748b;
   --text-faint: #64748b;
 
-  --shadow-bento: 0 10px 30px -10px rgba(0, 0, 0, 0.08), 0 0 1px 1px rgba(0, 0, 0, 0.05);
+  --shadow-bento: 0 12px 32px -8px rgba(153, 27, 27, 0.07), 0 4px 12px -2px rgba(180, 83, 9, 0.04), 0 0 0 1px rgba(0, 0, 0, 0.07);
 }
 
 /* Typography Overrides */
@@ -2252,4 +2252,96 @@ html, body {
 [data-theme='light'] .search-input-sleek::placeholder,
 [data-theme='mapua'] .search-input-sleek::placeholder {
   color: #64748b !important;
+}
+
+
+/* Floating Glass Dock - Specular Highlight & Scroll Compression */
+.navbar-inner {
+  border-top: 1px solid rgba(255, 255, 255, 0.2) !important;
+  transition: padding 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s ease, background-color 0.25s ease !important;
+}
+
+[data-theme='light'] .navbar-inner,
+[data-theme='mapua'] .navbar-inner {
+  border-top: 1px solid rgba(255, 255, 255, 0.8) !important;
+  box-shadow: 0 14px 34px -10px rgba(153, 27, 27, 0.08), 0 2px 8px -2px rgba(0, 0, 0, 0.04), 0 0 0 1px rgba(0, 0, 0, 0.06) !important;
+}
+
+.navbar-header.navbar-scrolled {
+  top: 0.5rem !important;
+}
+
+.navbar-header.navbar-scrolled .navbar-inner {
+  padding: 0.45rem 1.15rem !important;
+  box-shadow: 0 18px 40px -10px rgba(0, 0, 0, 0.4) !important;
+}
+
+[data-theme='light'] .navbar-header.navbar-scrolled .navbar-inner,
+[data-theme='mapua'] .navbar-header.navbar-scrolled .navbar-inner {
+  box-shadow: 0 16px 36px -10px rgba(153, 27, 27, 0.12), 0 2px 10px -2px rgba(0, 0, 0, 0.06) !important;
+}
+
+
+/* Ticket Quota Micro-Meter */
+.ticket-quota-bar {
+  width: 100%;
+  height: 4px;
+  background: rgba(255, 255, 255, 0.12);
+  border-radius: var(--radius-full);
+  margin: 0.35rem 0 0.25rem 0;
+  overflow: hidden;
+}
+
+[data-theme='light'] .ticket-quota-bar,
+[data-theme='mapua'] .ticket-quota-bar {
+  background: rgba(0, 0, 0, 0.1) !important;
+}
+
+.ticket-quota-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #d97706, #f59e0b);
+  border-radius: var(--radius-full);
+  transition: width 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.ticket-quota-fill.met {
+  background: linear-gradient(90deg, #059669, #10b981) !important;
+  box-shadow: 0 0 8px rgba(16, 185, 129, 0.5) !important;
+}
+
+/* Guilloche Security Watermark Pattern in Ticket Stub */
+.ticket-stub {
+  position: relative;
+  overflow: hidden;
+}
+
+.ticket-stub::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(circle at 50% 50%, rgba(185, 28, 28, 0.04) 1.5px, transparent 1.5px),
+                    radial-gradient(circle at 0% 0%, rgba(217, 119, 6, 0.03) 1.5px, transparent 1.5px);
+  background-size: 10px 10px;
+  pointer-events: none;
+  opacity: 0.7;
+}
+
+/* Chair Tab Buttons Light Mode Polish */
+[data-theme='light'] .chair-tab-btn,
+[data-theme='mapua'] .chair-tab-btn {
+  color: #334155 !important;
+  font-weight: 700 !important;
+}
+
+[data-theme='light'] .chair-tab-btn:hover,
+[data-theme='mapua'] .chair-tab-btn:hover {
+  background: #f1ece7 !important;
+  color: #0f172a !important;
+}
+
+[data-theme='light'] .chair-tab-btn.active,
+[data-theme='mapua'] .chair-tab-btn.active {
+  background: linear-gradient(135deg, var(--crimson-core), #7f1d1d) !important;
+  color: #ffffff !important;
+  box-shadow: 0 4px 14px rgba(153, 27, 27, 0.25) !important;
 }

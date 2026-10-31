@@ -502,6 +502,12 @@ export default function StatusTracker({
                       <div>
                         <span className="ticket-field-label">CURRENT QUOTA</span>
                         <p style={{ margin: 0, fontWeight: 700, color: isMet ? 'var(--emerald-core)' : 'var(--gold-core)', fontSize: '0.86rem' }}>{count} / {MIN_STUDENT_THRESHOLD} Students</p>
+                        <div className="ticket-quota-bar">
+                          <div 
+                            className={`ticket-quota-fill ${isMet ? 'met' : ''}`} 
+                            style={{ width: `${pct}%` }}
+                          />
+                        </div>
                         <span className="ticket-field-sub">{pct}% Threshold</span>
                       </div>
                     </div>

@@ -340,7 +340,34 @@ export default function DemandAnalytics({
           <div>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '1rem', marginBottom: '1rem', flexWrap: 'wrap' }}>
               <div>
-                <h2 style={{ fontSize: '1.05rem', fontWeight: 800, color: 'var(--text-pure)', margin: 0, display: 'flex', alignItems: 'center', gap: '0.45rem' }}>
+                {/* Department Quick Filter Tabs */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', flexWrap: 'wrap', marginBottom: '1rem' }}>
+              {[
+                { id: 'ALL', label: 'All Majors' },
+                { id: 'CS', label: 'CS' },
+                { id: 'IT', label: 'IT' },
+                { id: 'DS', label: 'DS' },
+                { id: 'EMC', label: 'EMC' },
+                { id: 'IS', label: 'IS' }
+              ].map(d => {
+                const count = d.id === 'ALL'
+                  ? activeCourses.length
+                  : activeCourses.filter(c => (c.dept || inferCourseDepartment(c.code)) === d.id).length;
+                return (
+                  <button
+                    key={d.id}
+                    type="button"
+                    className={`dept-chip ${selectedDept === d.id ? 'active' : ''}`}
+                    onClick={() => setSelectedDept(d.id)}
+                    style={{ fontSize: '0.72rem', padding: '0.25rem 0.6rem' }}
+                  >
+                    {d.label} ({count})
+                  </button>
+                );
+              })}
+            </div>
+
+            <h2 style={{ fontSize: '1.05rem', fontWeight: 800, color: 'var(--text-pure)', margin: 0, display: 'flex', alignItems: 'center', gap: '0.45rem' }}>
                   <BarChart3 size={17} style={{ color: 'var(--crimson-bright)' }} />
                   Top Course Demand vs. 15-Student Target
                 </h2>
@@ -383,18 +410,20 @@ export default function DemandAnalytics({
                 >
                   <span style={{
                     position: 'absolute',
-                    top: '-22px',
-                    left: '-28px',
-                    background: '#ecfdf5',
-                    color: '#047857',
+                    top: '-25px',
+                    left: '-52px',
+                    background: 'linear-gradient(135deg, #059669, #047857)',
+                    color: '#ffffff',
                     border: '1px solid rgba(16, 185, 129, 0.4)',
-                    fontSize: '0.68rem',
+                    fontSize: '0.64rem',
                     fontWeight: 800,
-                    padding: '0.1rem 0.45rem',
+                    padding: '0.18rem 0.65rem',
                     borderRadius: '999px',
-                    whiteSpace: 'nowrap'
+                    whiteSpace: 'nowrap',
+                    boxShadow: '0 2px 8px rgba(16, 185, 129, 0.45)',
+                    letterSpacing: '0.04em'
                   }}>
-                    Goal: 15
+                    ★ 15 STUDENTS • SECTION OPENS
                   </span>
                 </div>
 
