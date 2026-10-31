@@ -1,6 +1,8 @@
+import { getFirebaseDb } from '../services/firebase';
 import React, { useState, useMemo, useEffect } from 'react';
 import { 
-  GraduationCap, 
+  GraduationCap,
+  Cloud, 
   BookOpen, 
   Search, 
   BarChart3, 
@@ -34,7 +36,8 @@ export default function Navbar({
   coursesWithDemand = [],
   requests = [],
   openedSections = [],
-  onSectionActionChange
+  onSectionActionChange,
+  onOpenFirebase
 }) {
   // Dynamic Island Logic
   const readyToOpenCourse = useMemo(() => {
@@ -358,6 +361,23 @@ export default function Navbar({
               {isMobileMenuOpen ? <X size={19} /> : <Menu size={19} />}
             </button>
           )}
+          <button
+            type="button"
+            className="action-pill-btn"
+            onClick={onOpenFirebase}
+            title={Boolean(getFirebaseDb()) ? "Cloud Firestore Connected (Click to view/change)" : "Cloud Database (Offline / Local Mode)"}
+            style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}
+          >
+            <Cloud size={14} style={{ color: Boolean(getFirebaseDb()) ? 'var(--emerald-core)' : 'var(--text-muted)' }} />
+            <span style={{
+              width: 6,
+              height: 6,
+              borderRadius: '50%',
+              backgroundColor: Boolean(getFirebaseDb()) ? 'var(--emerald-core)' : '#f59e0b',
+              boxShadow: Boolean(getFirebaseDb()) ? '0 0 6px var(--emerald-glow)' : 'none'
+            }} />
+          </button>
+
           <button
             type="button"
             className="action-pill-btn"

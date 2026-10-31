@@ -1,0 +1,42 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Helper functions
+    function isValidEmail(email) {
+      return email is string && email.matches('.*@.*');
+    }
+
+    // 1. Course Petitions
+    match /soit_petitions/{petitionId} {
+      // Anyone can read active petitions to calculate section demand
+      allow read: if true;
+      // Allow creation, updates, and retractions
+      allow create, update, delete: if true;
+    }
+
+    // 2. Opened Course Sections
+    match /soit_opened_sections/{sectionCode} {
+      allow read: if true;
+      allow write: if true;
+    }
+
+    // 3. System State (Quarter Status & Rollover Archives)
+    match /soit_system_state/{docId} {
+      allow read: if true;
+      allow write: if true;
+    }
+
+    // 4. Student Accounts
+    match /soit_students/{studentEmail} {
+      allow read, write: if true;
+    }
+
+    // 5. Faculty & Program Chair Consultations
+    match /soit_consultations/{facultyEmail} {
+      allow read: if true;
+      allow write: if true;
+    }
+  }
+}

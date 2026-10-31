@@ -1,3 +1,14 @@
+import { 
+  getFirebaseDb, 
+  collection, 
+  doc, 
+  setDoc, 
+  deleteDoc, 
+  onSnapshot, 
+  getDocs, 
+  getDoc,
+  writeBatch 
+} from './firebase';
 import { canAdminManageCourse } from './adminAuth';
 import { SOIT_COURSES, MIN_STUDENT_THRESHOLD } from '../data/courses';
 import { validateUnlistedCourse, inferDepartmentFromCode } from '../utils/validation';
@@ -891,4 +902,68 @@ export async function deleteArchivedPetitionRecord({
 
   saveLocalQuarterState(nextState);
   return { success: true, quarterState: nextState };
+}
+
+
+/**
+ * Real-Time Firebase Sync Hook
+ * Allows any view across the world to subscribe to instant Firestore updates
+ */
+export function subscribeToFirebaseSync({ onRequests, onOpened, onQuarter } = {}) {
+  const db = getFirebaseDb();
+  if (!db) return () => {};
+
+  const unsubs = [];
+  try {
+    if (onRequests) {
+      const u1 = onSnapshot(
+        collection(db, 'soit_petitions'),
+        (snapshot) => {
+          const list = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+          saveLocalRequests(list);
+          onRequests(list);
+        },
+        (error) => {
+          console.warn('Real-time soit_petitions listener notice (using local/API fallback):', error.message);
+        }
+      );
+      unsubs.push(u1);
+    }
+    if (onOpened) {
+      const u2 = onSnapshot(
+        collection(db, 'soit_opened_sections'),
+        (snapshot) => {
+          const list = snapshot.docs.map(d => ({ code: d.id, ...d.data() }));
+          saveOpenedSections(list);
+          onOpened(list);
+        },
+        (error) => {
+          console.warn('Real-time soit_opened_sections listener notice:', error.message);
+        }
+      );
+      unsubs.push(u2);
+    }
+    if (onQuarter) {
+      const u3 = onSnapshot(
+        doc(db, 'soit_system_state', 'quarter_state'),
+        (snapshot) => {
+          if (snapshot.exists()) {
+            const data = snapshot.data();
+            saveLocalQuarterState(data);
+            onQuarter(data);
+          }
+        },
+        (error) => {
+          console.warn('Real-time quarter_state listener notice:', error.message);
+        }
+      );
+      unsubs.push(u3);
+    }
+  } catch (e) {
+    console.warn('Real-time subscription error:', e);
+  }
+
+  return () => {
+    unsubs.forEach(u => typeof u === 'function' && u());
+  };
 }

@@ -134,5 +134,20 @@
       }
     ],
     "updatedAt": "2026-10-31T07:56:17.340Z"
+  },
+  "imppcabalag@gmail.com": {
+    "email": "imppcabalag@gmail.com",
+    "displayEmail": "imppcabalag@gmail.com",
+    "name": "SOIT System Administrator",
+    "dept": "SOIT",
+    "programTitle": "SOIT General Administration (All Courses)",
+    "slots": [
+      {
+        "day": "Wednesday",
+        "startTime": "01:00 PM",
+        "endTime": "04:00 PM"
+      }
+    ],
+    "updatedAt": "2026-10-31T16:48:19.950Z"
   }
 }
