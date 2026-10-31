@@ -313,12 +313,22 @@ export default function StatusTracker({
               className="chair-status-select"
               value={selectedCourse}
               onChange={e => setSelectedCourse(e.target.value)}
-              style={{ padding: '0.58rem 0.85rem', fontSize: '0.82rem', minWidth: '240px', fontWeight: 700 }}
+              style={{ 
+                padding: '0.58rem 0.85rem', 
+                fontSize: '0.82rem', 
+                minWidth: '240px', 
+                fontWeight: 700,
+                colorScheme: 'dark',
+                background: 'var(--bg-surface)',
+                color: 'var(--text-pure)',
+                borderColor: 'var(--border-medium)',
+                cursor: 'pointer'
+              }}
               aria-label="Filter by specific course"
             >
-              <option value="ALL">All Courses ({courseFilterOptions.reduce((s, c) => s + c.count, 0)} petitions)</option>
+              <option value="ALL" style={{ background: '#0f172a', color: '#f8fafc' }}>All Courses ({courseFilterOptions.reduce((s, c) => s + c.count, 0)} petitions)</option>
               {courseFilterOptions.map(c => (
-                <option key={c.code} value={c.code}>
+                <option key={c.code} value={c.code} style={{ background: '#0f172a', color: '#f8fafc' }}>
                   {c.code} — {c.title} ({c.count})
                 </option>
               ))}
@@ -480,21 +490,21 @@ export default function StatusTracker({
                       </div>
                     </div>
 
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '0.6rem', padding: '0.7rem', background: 'var(--bg-input)', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-hairline)', fontSize: '0.78rem' }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '0.6rem', padding: '0.75rem 0.9rem', background: 'var(--bg-input)', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-hairline)', fontSize: '0.78rem' }}>
                       <div>
-                        <span style={{ fontSize: '0.65rem', color: 'var(--text-faint)', textTransform: 'uppercase' }}>Student</span>
-                        <p style={{ margin: 0, fontWeight: 700 }}>{req.lastName}, {req.firstName}</p>
-                        <span style={{ fontSize: '0.7rem', fontFamily: 'var(--font-mono)', color: 'var(--text-muted)' }}>{req.studentNumber}</span>
+                        <span style={{ fontSize: '0.68rem', fontWeight: 800, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.04em', display: 'block', marginBottom: '0.15rem' }}>STUDENT</span>
+                        <p style={{ margin: 0, fontWeight: 700, color: 'var(--text-pure)', fontSize: '0.86rem' }}>{req.lastName}, {req.firstName}</p>
+                        <span style={{ fontSize: '0.72rem', fontFamily: 'var(--font-mono)', color: '#cbd5e1', fontWeight: 600 }}>{req.studentNumber}</span>
                       </div>
                       <div>
-                        <span style={{ fontSize: '0.65rem', color: 'var(--text-faint)', textTransform: 'uppercase' }}>Program & Remaining</span>
-                        <p style={{ margin: 0, fontWeight: 700, color: 'var(--crimson-bright)' }}>{req.program}</p>
-                        <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>{req.unitsLeft} units left</span>
+                        <span style={{ fontSize: '0.68rem', fontWeight: 800, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.04em', display: 'block', marginBottom: '0.15rem' }}>PROGRAM & REMAINING</span>
+                        <p style={{ margin: 0, fontWeight: 700, color: 'var(--crimson-bright)', fontSize: '0.86rem' }}>{req.program}</p>
+                        <span style={{ fontSize: '0.72rem', color: '#cbd5e1', fontWeight: 600 }}>{req.unitsLeft} units left</span>
                       </div>
                       <div>
-                        <span style={{ fontSize: '0.65rem', color: 'var(--text-faint)', textTransform: 'uppercase' }}>Current Quota</span>
-                        <p style={{ margin: 0, fontWeight: 700, color: isMet ? 'var(--emerald-core)' : '#d97706' }}>{count} / {MIN_STUDENT_THRESHOLD} Students</p>
-                        <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>{pct}% Threshold</span>
+                        <span style={{ fontSize: '0.68rem', fontWeight: 800, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.04em', display: 'block', marginBottom: '0.15rem' }}>CURRENT QUOTA</span>
+                        <p style={{ margin: 0, fontWeight: 700, color: isMet ? 'var(--emerald-core)' : '#f59e0b', fontSize: '0.86rem' }}>{count} / {MIN_STUDENT_THRESHOLD} Students</p>
+                        <span style={{ fontSize: '0.72rem', color: '#cbd5e1', fontWeight: 600 }}>{pct}% Threshold</span>
                       </div>
                     </div>
 
@@ -524,9 +534,7 @@ export default function StatusTracker({
                   {/* Stub */}
                   <div className="ticket-stub">
                     <div style={{ width: '100%' }}>
-                      <span style={{ fontSize: '0.65rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase' }}>
-                        PASS REF
-                      </span>
+                      <span style={{ fontSize: '0.68rem', fontWeight: 800, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.05em' }}>PASS REF</span>
                       <div style={{ fontSize: '1.05rem', fontWeight: 800, fontFamily: 'var(--font-mono)', color: 'var(--crimson-bright)', margin: '0.15rem 0' }}>
                         {req.id}
                       </div>
@@ -536,9 +544,7 @@ export default function StatusTracker({
                       <div className="decorative-barcode">
                         |||| || |||||| | |||
                       </div>
-                      <span style={{ fontSize: '0.62rem', fontFamily: 'var(--font-mono)', color: 'var(--text-faint)' }}>
-                        SOIT-PASS-GATE
-                      </span>
+                      <span style={{ fontSize: '0.68rem', fontFamily: 'var(--font-mono)', fontWeight: 700, color: '#94a3b8', letterSpacing: '0.05em' }}>SOIT-PASS-GATE</span>
                     </div>
 
                     <button

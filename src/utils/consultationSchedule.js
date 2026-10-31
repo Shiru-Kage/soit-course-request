@@ -111,3 +111,4 @@ export function getChairPresenceStatus(dayString = '', timeString = '') {
     color: 'var(--text-muted)'
   };
 }
+

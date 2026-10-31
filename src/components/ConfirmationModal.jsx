@@ -120,12 +120,12 @@ export default function ConfirmationModal({ request, onClose, onTrack }) {
             {/* Student & Degree Metadata Grid */}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '0.75rem', fontSize: '0.82rem', padding: '0.85rem', background: 'var(--bg-input)', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-hairline)' }}>
               <div>
-                <span style={{ fontSize: '0.68rem', color: 'var(--text-faint)', fontWeight: 700, textTransform: 'uppercase' }}>Student</span>
+                <span style={{ fontSize: '0.68rem', color: '#94a3b8', fontWeight: 800, letterSpacing: '0.04em', textTransform: 'uppercase' }}>STUDENT</span>
                 <p style={{ margin: '0.15rem 0 0', fontWeight: 700, color: 'var(--text-pure)' }}>{request.lastName}, {request.firstName}</p>
                 <span style={{ fontSize: '0.7rem', fontFamily: 'var(--font-mono)', color: 'var(--text-muted)' }}>{request.studentNumber}</span>
               </div>
               <div>
-                <span style={{ fontSize: '0.68rem', color: 'var(--text-faint)', fontWeight: 700, textTransform: 'uppercase' }}>Program & Remaining</span>
+                <span style={{ fontSize: '0.68rem', color: '#94a3b8', fontWeight: 800, letterSpacing: '0.04em', textTransform: 'uppercase' }}>PROGRAM & REMAINING</span>
                 <p style={{ margin: '0.15rem 0 0', fontWeight: 700, color: 'var(--crimson-bright)' }}>{request.program}</p>
                 <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>{request.unitsLeft} units remaining</span>
               </div>
@@ -151,9 +151,7 @@ export default function ConfirmationModal({ request, onClose, onTrack }) {
           {/* Ticket Stub */}
           <div className="ticket-stub">
             <div style={{ width: '100%' }}>
-              <span style={{ fontSize: '0.68rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                REFERENCE ID
-              </span>
+              <span style={{ fontSize: '0.68rem', fontWeight: 800, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.05em' }}>REFERENCE ID</span>
               <div style={{ 
                 fontSize: '1.25rem', 
                 fontWeight: 800, 
@@ -171,9 +169,7 @@ export default function ConfirmationModal({ request, onClose, onTrack }) {
               <div className="decorative-barcode">
                 |||| | |||||| || | |||| |||
               </div>
-              <span style={{ fontSize: '0.65rem', fontFamily: 'var(--font-mono)', color: 'var(--text-faint)', letterSpacing: '0.1em' }}>
-                VERIFIED-PASS-SOIT
-              </span>
+              <span style={{ fontSize: '0.68rem', fontFamily: 'var(--font-mono)', fontWeight: 700, color: '#94a3b8', letterSpacing: '0.08em' }}>VERIFIED-PASS-SOIT</span>
             </div>
 
             {/* Quick Action Button */}
