@@ -16,7 +16,9 @@ import {
   CalendarRange,
   Archive,
   Menu,
-  X
+  X,
+  Sparkles,
+  Ticket
 } from 'lucide-react';
 
 export default function Navbar({ 
