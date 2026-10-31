@@ -335,12 +335,7 @@ export default function Navbar({
               </>
             )}
           </nav>
-        ) : (
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--text-muted)', fontSize: '0.825rem', fontWeight: 600 }}>
-            <span style={{ width: 8, height: 8, borderRadius: '50%', backgroundColor: 'var(--mapua-crimson)' }} />
-            <span>Portal Authentication Gate</span>
-          </div>
-        )}
+        ) : null}
 
         {/* Right Controls */}
         <div className="navbar-actions">
@@ -380,11 +375,7 @@ export default function Navbar({
                 <ArrowLeft size={14} />
                 <span>Back to Student / Faculty</span>
               </button>
-            ) : (
-              <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontWeight: 600 }}>
-                Select Role Below
-              </div>
-            )
+            ) : null
           ) : (
             <div style={{ position: 'relative' }}>
               <button

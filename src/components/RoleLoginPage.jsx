@@ -241,57 +241,22 @@ export default function RoleLoginPage({ onLoginStudent, onLoginChair, view: cont
     <div style={{ maxWidth: '960px', margin: '2rem auto', padding: '0 1rem' }}>
       
       {/* Brand Header */}
-      <div style={{ textAlign: 'center', marginBottom: '2.25rem' }}>
-        <div style={{ 
-          width: '74px', 
-          height: '74px', 
-          borderRadius: '18px', 
-          background: '#ffffff',
-          display: 'inline-flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          boxShadow: '0 8px 24px rgba(185, 28, 28, 0.14)',
-          border: '1px solid var(--border-hairline)',
-          padding: '10px',
-          marginBottom: '1rem'
-        }}>
-          <img
-            src="/soit-logo-icon.png"
-            alt="Mapúa School of Information Technology Logo"
-            style={{ width: '100%', height: '100%', objectFit: 'contain', display: 'block' }}
-          />
+      {view === 'select' && (
+        <div style={{ textAlign: 'center', marginBottom: '2rem', marginTop: '0.5rem' }}>
+          <h1 style={{ 
+            fontSize: 'clamp(1.75rem, 3.5vw, 2.35rem)', 
+            fontWeight: 800, 
+            letterSpacing: '-0.03em', 
+            color: 'var(--text-pure)',
+            marginBottom: '0.45rem'
+          }}>
+            Course Request & Demand Gateway
+          </h1>
+          <p style={{ fontSize: '0.925rem', color: 'var(--text-muted)', maxWidth: '540px', margin: '0 auto', lineHeight: 1.5 }}>
+            Sign in to submit course petitions or manage department section quotas.
+          </p>
         </div>
-
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', marginBottom: '0.45rem' }}>
-          <span className="live-pill" style={{ padding: '0.25rem 0.65rem', fontSize: '0.7rem' }}>
-            <span className="live-status-dot" /> SOIT ACADEMIC PORTAL
-          </span>
-          <span
-            className="mono-tag"
-            style={{
-              color: quarterState?.isQuarterOpen === false ? '#d97706' : 'var(--emerald-core)',
-              fontWeight: 800
-            }}
-          >
-            {quarterState?.isQuarterOpen === false
-              ? 'QUARTER NOT YET BEGUN'
-              : `TERM ${quarterState?.currentQuarter || '2Q2627'}`}
-          </span>
-        </div>
-
-        <h1 style={{ 
-          fontSize: 'clamp(1.85rem, 3.8vw, 2.5rem)', 
-          fontWeight: 800, 
-          letterSpacing: '-0.03em', 
-          color: 'var(--text-pure)',
-          marginBottom: '0.45rem'
-        }}>
-          Course Request & Demand Gateway
-        </h1>
-        <p style={{ fontSize: '0.925rem', color: 'var(--text-muted)', maxWidth: '580px', margin: '0 auto', lineHeight: 1.5 }}>
-          Official dynamic enrollment gateway for Mapúa University School of Information Technology. Sign in or create your verified profile to continue.
-        </p>
-      </div>
+      )}
 
       {/* =======================================================================
           VIEW 1: GATEWAY SELECTION (DUAL BENTO CARDS)
