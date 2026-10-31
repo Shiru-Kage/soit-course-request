@@ -513,8 +513,12 @@ export default function StatusTracker({
                     </div>
 
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '0.15rem' }}>
-                      <div className={`rubber-stamp ${isMet ? 'granted' : 'gathering'}`}>
-                        {isMet ? '★ SECTION GRANTED ★' : 'PETITION RECORDED • GATHERING'}
+                      <div className={`rubber-stamp ${req.status === 'Section Opened' ? 'opened' : isMet ? 'granted' : 'gathering'}`}>
+                        {req.status === 'Section Opened'
+                          ? '★ SECTION OPENED • READY TO ENLIST ★'
+                          : isMet
+                            ? '★ THRESHOLD MET • FOR CHAIR REVIEW ★'
+                            : 'PETITION RECORDED • GATHERING'}
                       </div>
                       {canRemove && (
                         <button

@@ -133,8 +133,12 @@ export default function ConfirmationModal({ request, onClose, onTrack }) {
 
             {/* Rubber Stamp Placement */}
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '0.25rem' }}>
-              <div className={`rubber-stamp ${isGranted ? 'granted' : 'gathering'}`}>
-                {isGranted ? '★ SECTION GRANTED ★' : 'PETITION RECORDED • GATHERING'}
+              <div className={`rubber-stamp ${request.status === 'Section Opened' ? 'opened' : isGranted ? 'granted' : 'gathering'}`}>
+                {request.status === 'Section Opened'
+                  ? '★ SECTION OPENED • READY TO ENLIST ★'
+                  : isGranted
+                    ? '★ THRESHOLD MET • FOR CHAIR REVIEW ★'
+                    : 'PETITION RECORDED • GATHERING'}
               </div>
               <span className="ticket-date">
                 {new Date(request.createdAt || Date.now()).toLocaleDateString()}
