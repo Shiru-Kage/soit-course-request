@@ -1,4 +1,4 @@
-// Firebase Firestore Cloud Integration
+// Firebase Firestore Cloud Integration - Silent Background Configuration
 import { initializeApp, getApps, getApp } from 'firebase/app';
 import { 
   getFirestore, 
@@ -12,10 +12,8 @@ import {
   writeBatch
 } from 'firebase/firestore';
 
-const STORAGE_KEY = 'soit_enrollment_firebase_config';
-
-// Default config (matching the user's Mapua ecosystem or can be overridden via UI/Env)
-export const DEFAULT_FIREBASE_CONFIG = {
+// Configuration loaded securely from environment variables (or Mapua project defaults)
+export const FIREBASE_CONFIG = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY || "AIzaSyCkZSiWHLb8qrzUAiocgrijAaQ5dujYJWo",
   authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || "mapua-schedpoint.firebaseapp.com",
   projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID || "mapua-schedpoint",
@@ -24,41 +22,13 @@ export const DEFAULT_FIREBASE_CONFIG = {
   appId: import.meta.env.VITE_FIREBASE_APP_ID || "1:670467479029:web:5a91bb3e3cd85ca51bbcbc"
 };
 
-export function getSavedFirebaseConfig() {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (raw) {
-      const parsed = JSON.parse(raw);
-      if (parsed && parsed.apiKey && parsed.projectId) {
-        return parsed;
-      }
-    }
-  } catch (e) {
-    console.error('Error reading Firebase config from localStorage:', e);
-  }
-  return DEFAULT_FIREBASE_CONFIG;
-}
-
-export function saveFirebaseConfig(config) {
-  try {
-    if (!config) {
-      localStorage.removeItem(STORAGE_KEY);
-      return;
-    }
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(config));
-  } catch (e) {
-    console.error('Error saving Firebase config:', e);
-  }
-}
-
 export function getFirebaseDb() {
-  const config = getSavedFirebaseConfig();
-  if (!config || !config.apiKey || !config.projectId) {
+  if (!FIREBASE_CONFIG || !FIREBASE_CONFIG.apiKey || !FIREBASE_CONFIG.projectId) {
     return null;
   }
 
   try {
-    const app = getApps().length === 0 ? initializeApp(config) : getApp();
+    const app = getApps().length === 0 ? initializeApp(FIREBASE_CONFIG) : getApp();
     return getFirestore(app);
   } catch (err) {
     console.error('Failed to initialize Firebase:', err);
@@ -76,4 +46,3 @@ export {
   getDoc,
   writeBatch
 };
-

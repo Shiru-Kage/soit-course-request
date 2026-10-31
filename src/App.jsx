@@ -1,4 +1,3 @@
-import FirebaseModal from './components/FirebaseModal';
 import React, { useState, useEffect, useMemo } from 'react';
 import Navbar from './components/Navbar';
 import EnrollmentWizard from './components/EnrollmentWizard';
@@ -81,7 +80,6 @@ export default function App() {
   const [trackerInitialQuery, setTrackerInitialQuery] = useState('');
   const [loginView, setLoginView] = useState('select');
   const [showMilestoneCelebration, setShowMilestoneCelebration] = useState(false);
-  const [showFirebaseModal, setShowFirebaseModal] = useState(false);
 
   // Apply Theme
   useEffect(() => {
@@ -335,11 +333,6 @@ export default function App() {
   return (
     <div className="app-container">
       <InteractiveAtmosphere />
-      <FirebaseModal
-        isOpen={showFirebaseModal}
-        onClose={() => setShowFirebaseModal(false)}
-        onConfigSaved={() => fetchAllRequests().then(r => Array.isArray(r) && setRequests(r))}
-      />
       <MilestoneCelebration 
         active={showMilestoneCelebration} 
         onComplete={() => setShowMilestoneCelebration(false)} 
@@ -361,7 +354,6 @@ export default function App() {
         requests={requests}
         openedSections={openedSections}
         onSectionActionChange={handleSectionActionChange}
-        onOpenFirebase={() => setShowFirebaseModal(true)}
       />
 
       {/* Main View Area */}
