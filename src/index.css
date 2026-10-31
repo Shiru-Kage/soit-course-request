@@ -1778,3 +1778,208 @@ html, body {
   0% { transform: scale(0.9); opacity: 0.8; }
   75%, 100% { transform: scale(2.4); opacity: 0; }
 }
+
+
+/* ==========================================================================
+   TACTILE ACADEMIC BOARDING PASS & PERFORATED TICKET
+   ========================================================================== */
+.boarding-pass-ticket {
+  position: relative;
+  background: var(--bg-card);
+  border: 1px solid var(--border-medium);
+  border-radius: var(--radius-xl);
+  overflow: hidden;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.25);
+  display: flex;
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s ease;
+}
+
+.boarding-pass-ticket:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.35);
+}
+
+.ticket-main {
+  flex: 1;
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.ticket-divider-perforated {
+  position: relative;
+  width: 0;
+  border-left: 2px dashed var(--border-hairline);
+  margin: 0;
+}
+
+/* Scallop notches on top and bottom of perforation */
+.ticket-notch-top, .ticket-notch-bottom {
+  position: absolute;
+  width: 22px;
+  height: 22px;
+  background: var(--bg-main, #0f172a);
+  border: 1px solid var(--border-medium);
+  border-radius: 50%;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 5;
+}
+.ticket-notch-top {
+  top: -11px;
+}
+.ticket-notch-bottom {
+  bottom: -11px;
+}
+
+.ticket-stub {
+  width: 200px;
+  padding: 1.5rem 1.25rem;
+  background: var(--bg-subtle);
+  display: flex;
+  flex-direction: column;
+  justifyContent: space-between;
+  align-items: center;
+  text-align: center;
+  border-left: 1px solid transparent;
+}
+
+@media (max-width: 768px) {
+  .boarding-pass-ticket {
+    flex-direction: column;
+  }
+  .ticket-divider-perforated {
+    width: 100%;
+    height: 0;
+    border-left: none;
+    border-top: 2px dashed var(--border-hairline);
+  }
+  .ticket-notch-top {
+    left: -11px;
+    top: 50%;
+    transform: translateY(-50%);
+  }
+  .ticket-notch-bottom {
+    left: auto;
+    right: -11px;
+    bottom: auto;
+    top: 50%;
+    transform: translateY(-50%);
+  }
+  .ticket-stub {
+    width: 100%;
+    padding: 1.25rem;
+  }
+}
+
+/* Rubber Stamp Effect */
+.rubber-stamp {
+  display: inline-block;
+  padding: 0.35rem 0.85rem;
+  text-transform: uppercase;
+  font-family: var(--font-mono);
+  font-size: 0.76rem;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+  border-radius: 4px;
+  border: 2.5px solid currentColor;
+  transform: rotate(-4deg);
+  opacity: 0.92;
+  box-shadow: 0 0 0 1px currentColor;
+  user-select: none;
+  animation: stampImpact 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.rubber-stamp.granted {
+  color: #10b981;
+  border-color: #10b981;
+}
+
+.rubber-stamp.gathering {
+  color: #d97706;
+  border-color: #d97706;
+}
+
+@keyframes stampImpact {
+  0% { transform: scale(1.6) rotate(-15deg); opacity: 0; }
+  100% { transform: scale(1) rotate(-4deg); opacity: 0.92; }
+}
+
+/* Decorative Barcode */
+.decorative-barcode {
+  font-family: var(--font-mono);
+  letter-spacing: 2px;
+  font-size: 1.1rem;
+  font-weight: 300;
+  opacity: 0.55;
+  user-select: none;
+}
+
+/* ==========================================================================
+   ARCHITECTURAL X-RAY / BLUEPRINT MODE HUD
+   ========================================================================== */
+[data-blueprint-mode="active"] body {
+  background-color: #061121 !important;
+  background-image: 
+    linear-gradient(rgba(56, 189, 248, 0.1) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(56, 189, 248, 0.1) 1px, transparent 1px) !important;
+  background-size: 28px 28px !important;
+  color: #e0f2fe !important;
+}
+
+[data-blueprint-mode="active"] .dossier-card,
+[data-blueprint-mode="active"] .course-tile,
+[data-blueprint-mode="active"] .navbar-inner,
+[data-blueprint-mode="active"] .boarding-pass-ticket {
+  border: 1px dashed #0284c7 !important;
+  background: rgba(8, 20, 39, 0.92) !important;
+  box-shadow: 0 0 20px rgba(56, 189, 248, 0.1) !important;
+}
+
+[data-blueprint-mode="active"] .blueprint-tag {
+  display: inline-block !important;
+  font-family: var(--font-mono) !important;
+  font-size: 0.65rem !important;
+  color: #38bdf8 !important;
+  letter-spacing: 0.05em !important;
+}
+
+.blueprint-tag {
+  display: none;
+}
+
+/* In-Session Presence Beacon */
+.presence-beacon {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.22rem 0.65rem;
+  border-radius: var(--radius-full);
+  font-size: 0.72rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  background: rgba(16, 185, 129, 0.14);
+  color: var(--emerald-core);
+  border: 1px solid var(--emerald-border);
+}
+
+.presence-beacon-dot {
+  position: relative;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--emerald-core);
+  box-shadow: 0 0 8px var(--emerald-core);
+}
+
+.presence-beacon-dot::before {
+  content: "";
+  position: absolute;
+  inset: -3px;
+  border-radius: 50%;
+  background: var(--emerald-core);
+  opacity: 0.5;
+  animation: pulsePing 2s infinite ease-out;
+}

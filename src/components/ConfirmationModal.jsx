@@ -4,7 +4,10 @@ import {
   Printer, 
   Copy, 
   Sparkles,
-  X
+  X,
+  QrCode,
+  Ticket,
+  GraduationCap
 } from 'lucide-react';
 
 export default function ConfirmationModal({ request, onClose, onTrack }) {
@@ -19,6 +22,8 @@ export default function ConfirmationModal({ request, onClose, onTrack }) {
     window.print();
   };
 
+  const isGranted = request.status === 'Section Opened' || request.status === 'Threshold Met';
+
   return (
     <div
       className="modal-overlay"
@@ -27,8 +32,8 @@ export default function ConfirmationModal({ request, onClose, onTrack }) {
         position: 'fixed',
         inset: 0,
         zIndex: 9999,
-        backgroundColor: 'rgba(7, 9, 14, 0.78)',
-        backdropFilter: 'blur(8px)',
+        backgroundColor: 'rgba(7, 9, 14, 0.82)',
+        backdropFilter: 'blur(10px)',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
@@ -40,178 +45,175 @@ export default function ConfirmationModal({ request, onClose, onTrack }) {
         className="modal-content"
         onClick={e => e.stopPropagation()}
         style={{
-          maxWidth: '540px',
+          maxWidth: '640px',
           width: '100%',
-          maxHeight: '90vh',
+          maxHeight: '92vh',
           overflowY: 'auto',
-          backgroundColor: 'var(--bg-surface)',
-          border: '1px solid var(--border-medium)',
-          borderRadius: 'var(--radius-xl)',
-          boxShadow: 'var(--shadow-bento)',
+          backgroundColor: 'transparent',
+          border: 'none',
+          boxShadow: 'none',
           color: 'var(--text-primary)'
         }}
       >
-        {/* Header */}
-        <div style={{ 
-          padding: '1.5rem', 
-          borderBottom: '1px solid var(--border-light)', 
-          display: 'flex', 
-          alignItems: 'center', 
-          justifyContent: 'space-between' 
-        }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
-            <div style={{ color: '#10b981' }}>
-              <CheckCircle2 size={24} />
-            </div>
-            <div>
-              <h3 style={{ fontSize: '1.15rem', fontWeight: 800 }}>Course Request Submitted</h3>
-              <p style={{ fontSize: '0.775rem', color: 'var(--text-muted)' }}>Official SOIT Academic Request Slip</p>
+        {/* Auto-Cataloged Celebration Banner */}
+        {request.isAutoCataloged && (
+          <div style={{
+            background: 'rgba(16, 185, 129, 0.16)',
+            border: '1px solid rgba(16, 185, 129, 0.45)',
+            borderRadius: 'var(--radius-lg)',
+            padding: '0.85rem 1.15rem',
+            marginBottom: '1rem',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.75rem',
+            boxShadow: '0 8px 24px rgba(16, 185, 129, 0.15)'
+          }}>
+            <Sparkles size={20} style={{ color: '#10b981', flexShrink: 0 }} />
+            <div style={{ fontSize: '0.825rem', lineHeight: 1.4, color: 'var(--text-pure)' }}>
+              <strong style={{ color: '#10b981' }}>New Course Automatically Cataloged!</strong>
+              <div><strong>{request.courseCode} — {request.courseTitle}</strong> is now live in the SOIT database. Your petition is officially registered.</div>
             </div>
           </div>
-          <button type="button" onClick={onClose} style={{ color: 'var(--text-muted)', background: 'transparent', border: 'none', cursor: 'pointer' }}>
-            <X size={20} />
-          </button>
-        </div>
+        )}
 
-        {/* Body */}
-        <div style={{ padding: '1.5rem' }}>
-          {/* Auto-Cataloged Celebration Banner */}
-          {request.isAutoCataloged && (
-            <div style={{
-              background: 'rgba(16, 185, 129, 0.12)',
-              border: '1px solid rgba(16, 185, 129, 0.35)',
-              borderRadius: 'var(--radius-md)',
-              padding: '0.9rem 1rem',
-              marginBottom: '1.25rem',
-              display: 'flex',
-              alignItems: 'flex-start',
-              gap: '0.75rem'
-            }}>
-              <Sparkles size={18} style={{ color: '#10b981', flexShrink: 0, marginTop: '0.1rem' }} />
-              <div style={{ fontSize: '0.8rem', lineHeight: 1.45, color: 'var(--text-pure)' }}>
-                <strong style={{ color: '#10b981', display: 'block', marginBottom: '0.15rem' }}>
-                  Course Automatically Added to Official Catalog!
-                </strong>
-                <span>
-                  <strong>{request.courseCode} — {request.courseTitle}</strong> is now live in the SOIT Course Catalog for all students, and your petition has been recorded immediately as <strong>Student #1 / 15</strong>. You do <u>not</u> need to re-check or edit your response.
-                </span>
+        {/* Tactile Academic Boarding Pass Ticket */}
+        <div className="boarding-pass-ticket">
+          {/* Main Ticket Body */}
+          <div className="ticket-main">
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid var(--border-hairline)', paddingBottom: '0.75rem' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+                <div style={{ width: '32px', height: '32px', borderRadius: '8px', background: 'linear-gradient(135deg, var(--crimson-core), #7f1d1d)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fbbf24' }}>
+                  <GraduationCap size={18} />
+                </div>
+                <div>
+                  <div style={{ fontSize: '0.88rem', fontWeight: 800, color: 'var(--text-pure)', letterSpacing: '-0.02em' }}>
+                    MAPÚA UNIVERSITY • SOIT
+                  </div>
+                  <div style={{ fontSize: '0.68rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+                    Official Academic Course Petition Pass
+                  </div>
+                </div>
+              </div>
+              <button 
+                type="button" 
+                onClick={onClose} 
+                style={{ color: 'var(--text-faint)', background: 'transparent', border: 'none', cursor: 'pointer' }}
+                aria-label="Close ticket"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            {/* Course Headline */}
+            <div>
+              <span className="mono-tag" style={{ color: 'var(--crimson-bright)', fontSize: '0.7rem' }}>
+                REQUESTED COURSE
+              </span>
+              <div style={{ fontSize: '1.45rem', fontWeight: 800, color: 'var(--text-pure)', fontFamily: 'var(--font-mono)', marginTop: '0.15rem' }}>
+                {request.courseCode}
+              </div>
+              <div style={{ fontSize: '0.88rem', fontWeight: 600, color: 'var(--text-secondary)', marginTop: '0.15rem' }}>
+                {request.courseTitle || 'Course Section'}
               </div>
             </div>
-          )}
 
-          {/* Reference Badge */}
-          <div style={{ 
-            backgroundColor: 'var(--bg-subtle)', 
-            border: '1.5px dashed var(--border-strong)', 
-            borderRadius: 'var(--radius-lg)', 
-            padding: '1.25rem', 
-            textAlign: 'center',
-            marginBottom: '1.5rem'
-          }}>
-            <span style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase' }}>
-              Request Reference Number
-            </span>
-            <div style={{ 
-              fontSize: '1.65rem', 
-              fontWeight: 800, 
-              fontFamily: 'var(--font-mono)', 
-              color: 'var(--mapua-crimson)', 
-              letterSpacing: '0.05em',
-              margin: '0.35rem 0'
-            }}>
-              {request.id}
-            </div>
-            <p style={{ fontSize: '0.775rem', color: 'var(--text-muted)' }}>
-              Keep this reference code for petition verification or retraction.
-            </p>
-          </div>
-
-          {/* Details Grid */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '1rem', fontSize: '0.875rem', marginBottom: '1.5rem' }}>
-            <div>
-              <span style={{ color: 'var(--text-muted)', fontSize: '0.75rem', fontWeight: 600 }}>Student Number</span>
-              <p style={{ fontWeight: 700, fontFamily: 'var(--font-mono)' }}>{request.studentNumber}</p>
+            {/* Student & Degree Metadata Grid */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '0.75rem', fontSize: '0.82rem', padding: '0.85rem', background: 'var(--bg-input)', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-hairline)' }}>
+              <div>
+                <span style={{ fontSize: '0.68rem', color: 'var(--text-faint)', fontWeight: 700, textTransform: 'uppercase' }}>Student</span>
+                <p style={{ margin: '0.15rem 0 0', fontWeight: 700, color: 'var(--text-pure)' }}>{request.lastName}, {request.firstName}</p>
+                <span style={{ fontSize: '0.7rem', fontFamily: 'var(--font-mono)', color: 'var(--text-muted)' }}>{request.studentNumber}</span>
+              </div>
+              <div>
+                <span style={{ fontSize: '0.68rem', color: 'var(--text-faint)', fontWeight: 700, textTransform: 'uppercase' }}>Program & Remaining</span>
+                <p style={{ margin: '0.15rem 0 0', fontWeight: 700, color: 'var(--crimson-bright)' }}>{request.program}</p>
+                <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>{request.unitsLeft} units remaining</span>
+              </div>
             </div>
 
-            <div>
-              <span style={{ color: 'var(--text-muted)', fontSize: '0.75rem', fontWeight: 600 }}>Student Name</span>
-              <p style={{ fontWeight: 700 }}>{request.lastName}, {request.firstName}</p>
-            </div>
-
-            <div>
-              <span style={{ color: 'var(--text-muted)', fontSize: '0.75rem', fontWeight: 600 }}>MyMapua Email</span>
-              <p style={{ fontWeight: 600 }}>{request.email}</p>
-            </div>
-
-            <div>
-              <span style={{ color: 'var(--text-muted)', fontSize: '0.75rem', fontWeight: 600 }}>Degree Program</span>
-              <p style={{ fontWeight: 700, color: 'var(--mapua-crimson)' }}>{request.program}</p>
-            </div>
-
-            <div>
-              <span style={{ color: 'var(--text-muted)', fontSize: '0.75rem', fontWeight: 600 }}>Requested Course Code</span>
-              <p style={{ fontWeight: 800, fontFamily: 'var(--font-mono)', color: 'var(--mapua-crimson)' }}>{request.courseCode}</p>
-            </div>
-
-            <div>
-              <span style={{ color: 'var(--text-muted)', fontSize: '0.75rem', fontWeight: 600 }}>Overall Units Remaining</span>
-              <p style={{ fontWeight: 700 }}>{request.unitsLeft} units</p>
-            </div>
-
-            <div style={{ gridColumn: '1 / -1' }}>
-              <span style={{ color: 'var(--text-muted)', fontSize: '0.75rem', fontWeight: 600 }}>Course Title</span>
-              <p style={{ fontWeight: 700 }}>{request.courseTitle || 'N/A'}</p>
+            {/* Rubber Stamp Placement */}
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '0.25rem' }}>
+              <div className={`rubber-stamp ${isGranted ? 'granted' : 'gathering'}`}>
+                {isGranted ? '★ SECTION GRANTED ★' : 'PETITION RECORDED • GATHERING'}
+              </div>
+              <span style={{ fontSize: '0.7rem', color: 'var(--text-faint)', fontFamily: 'var(--font-mono)' }}>
+                {new Date(request.createdAt || Date.now()).toLocaleDateString()}
+              </span>
             </div>
           </div>
 
-          {/* Important Institutional Reminder */}
-          <div style={{ 
-            backgroundColor: 'var(--mapua-gold-bg)', 
-            border: '1px solid var(--mapua-gold-border)', 
-            borderRadius: 'var(--radius-md)', 
-            padding: '1rem', 
-            fontSize: '0.8rem',
-            color: 'var(--text-secondary)',
-            lineHeight: 1.5,
-            marginBottom: '1.5rem'
-          }}>
-            <strong style={{ color: 'var(--mapua-gold)' }}>Next Steps & Section Availability:</strong>
-            <ul style={{ paddingLeft: '1.25rem', marginTop: '0.35rem' }}>
-              <li>A minimum of at least <strong>15 students</strong> must request this subject before the Program Chair reviews section opening.</li>
-              <li>Updates on section offerings will be published in your official <strong>myMapua portal</strong>.</li>
-            </ul>
+          {/* Perforation Divider with Scallop Notches */}
+          <div className="ticket-divider-perforated">
+            <div className="ticket-notch-top" />
+            <div className="ticket-notch-bottom" />
           </div>
 
-          {/* Action Buttons */}
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.6rem' }}>
-            <button type="button" className="btn-secondary" onClick={handleCopy} style={{ flex: 1 }}>
-              <Copy size={16} />
-              <span>Copy ID</span>
-            </button>
-            <button type="button" className="btn-secondary" onClick={handlePrint} style={{ flex: 1 }}>
-              <Printer size={16} />
-              <span>Print Slip</span>
-            </button>
+          {/* Ticket Stub */}
+          <div className="ticket-stub">
+            <div style={{ width: '100%' }}>
+              <span style={{ fontSize: '0.68rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                REFERENCE ID
+              </span>
+              <div style={{ 
+                fontSize: '1.25rem', 
+                fontWeight: 800, 
+                fontFamily: 'var(--font-mono)', 
+                color: 'var(--crimson-bright)', 
+                letterSpacing: '0.05em',
+                margin: '0.25rem 0' 
+              }}>
+                {request.id}
+              </div>
+            </div>
+
+            {/* Decorative Barcode */}
+            <div style={{ margin: '1rem 0' }}>
+              <div className="decorative-barcode">
+                |||| | |||||| || | |||| |||
+              </div>
+              <span style={{ fontSize: '0.65rem', fontFamily: 'var(--font-mono)', color: 'var(--text-faint)', letterSpacing: '0.1em' }}>
+                VERIFIED-PASS-SOIT
+              </span>
+            </div>
+
+            {/* Quick Action Button */}
             <button
               type="button"
-              className="btn-secondary"
-              onClick={onClose}
-              style={{ flex: 1, fontWeight: 700, color: 'var(--emerald-core)', borderColor: 'var(--emerald-border)' }}
+              className="action-pill-btn"
+              onClick={handleCopy}
+              style={{ width: '100%', justifyContent: 'center', fontSize: '0.75rem' }}
             >
-              <span>+ Request Another Course</span>
-            </button>
-            <button 
-              type="button" 
-              className="btn-primary" 
-              onClick={() => {
-                onClose();
-                onTrack(request.studentNumber);
-              }}
-              style={{ flex: 1 }}
-            >
-              <span>Track Status</span>
+              <Copy size={13} />
+              <span>Copy Pass ID</span>
             </button>
           </div>
+        </div>
+
+        {/* Action Controls Footer */}
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.6rem', marginTop: '1rem' }}>
+          <button type="button" className="btn-secondary" onClick={handlePrint} style={{ flex: 1, padding: '0.65rem 1rem' }}>
+            <Printer size={15} />
+            <span>Print Official Ticket</span>
+          </button>
+          <button
+            type="button"
+            className="btn-secondary"
+            onClick={onClose}
+            style={{ flex: 1, padding: '0.65rem 1rem', fontWeight: 700, color: 'var(--emerald-core)', borderColor: 'var(--emerald-border)' }}
+          >
+            <span>+ Request Another</span>
+          </button>
+          <button 
+            type="button" 
+            className="tactile-btn-primary" 
+            onClick={() => {
+              onClose();
+              onTrack(request.studentNumber);
+            }}
+            style={{ flex: 1, padding: '0.65rem 1rem' }}
+          >
+            <span>Track My Pass</span>
+          </button>
         </div>
       </div>
     </div>

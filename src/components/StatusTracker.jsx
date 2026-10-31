@@ -1,5 +1,7 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { 
+  Ticket,
+  Layers,
   Search, 
   Trash2, 
   CheckCircle2, 
@@ -40,6 +42,7 @@ export default function StatusTracker({
   const [isRetracting, setIsRetracting] = useState(false);
   const [copiedId, setCopiedId] = useState(null);
   const [notification, setNotification] = useState('');
+  const [displayFormat, setDisplayFormat] = useState('ticket'); // 'ticket' | 'list'
 
   // Sync initialQuery prop if passed
   useEffect(() => {
@@ -401,9 +404,31 @@ export default function StatusTracker({
             <span>Displaying active petition records:</span>
           )}
         </div>
-        <span className="mono-tag" style={{ color: 'var(--text-faint)' }}>
-          {filteredRequests.length} RECORD{filteredRequests.length !== 1 ? 'S' : ''}
-        </span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', background: 'var(--bg-input)', padding: '0.2rem', borderRadius: 'var(--radius-full)', border: '1px solid var(--border-hairline)' }}>
+            <button
+              type="button"
+              className={`action-pill-btn ${displayFormat === 'ticket' ? 'active' : ''}`}
+              onClick={() => setDisplayFormat('ticket')}
+              style={{ padding: '0.25rem 0.65rem', fontSize: '0.72rem', borderRadius: 'var(--radius-full)', background: displayFormat === 'ticket' ? 'linear-gradient(135deg, var(--crimson-core), #7f1d1d)' : 'transparent', color: displayFormat === 'ticket' ? '#ffffff' : 'var(--text-muted)' }}
+            >
+              <Ticket size={12} />
+              <span>Boarding Passes</span>
+            </button>
+            <button
+              type="button"
+              className={`action-pill-btn ${displayFormat === 'list' ? 'active' : ''}`}
+              onClick={() => setDisplayFormat('list')}
+              style={{ padding: '0.25rem 0.65rem', fontSize: '0.72rem', borderRadius: 'var(--radius-full)', background: displayFormat === 'list' ? 'linear-gradient(135deg, var(--crimson-core), #7f1d1d)' : 'transparent', color: displayFormat === 'list' ? '#ffffff' : 'var(--text-muted)' }}
+            >
+              <Layers size={12} />
+              <span>Compact Roster</span>
+            </button>
+          </div>
+          <span className="mono-tag" style={{ color: 'var(--text-faint)' }}>
+            {filteredRequests.length} RECORD{filteredRequests.length !== 1 ? 'S' : ''}
+          </span>
+        </div>
       </div>
 
       {/* Results List */}
@@ -419,6 +444,116 @@ export default function StatusTracker({
             const remaining = Math.max(0, MIN_STUDENT_THRESHOLD - count);
             const canRemove = canRemovePetition(req);
             const reqDept = getRequestDept(req);
+
+            if (displayFormat === 'ticket') {
+              return (
+                <div key={req.id} className="boarding-pass-ticket">
+                  {/* Main Ticket Section */}
+                  <div className="ticket-main">
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid var(--border-hairline)', paddingBottom: '0.65rem' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                        <span style={{ fontSize: '0.74rem', fontWeight: 800, color: 'var(--text-pure)', letterSpacing: '0.04em' }}>
+                          MAPÚA SOIT PETITION PASS
+                        </span>
+                        <span style={{ fontSize: '0.68rem', fontWeight: 700, padding: '0.12rem 0.5rem', borderRadius: '4px', background: 'rgba(185, 28, 28, 0.1)', color: 'var(--crimson-bright)' }}>
+                          {reqDept} Track
+                        </span>
+                        {canRemove && (
+                          <span style={{ fontSize: '0.65rem', fontWeight: 800, padding: '0.12rem 0.45rem', borderRadius: '4px', background: 'rgba(16, 185, 129, 0.14)', color: 'var(--emerald-core)', border: '1px solid var(--emerald-border)' }}>
+                            {currentUser?.role === 'chair' ? `${reqDept} CHAIR` : 'YOUR PASS'}
+                          </span>
+                        )}
+                      </div>
+                      <span style={{ fontSize: '0.72rem', color: 'var(--text-faint)', fontFamily: 'var(--font-mono)' }}>
+                        {req.createdAt ? new Date(req.createdAt).toLocaleDateString() : 'Active Term'}
+                      </span>
+                    </div>
+
+                    <div>
+                      <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.6rem' }}>
+                        <span style={{ fontSize: '1.35rem', fontWeight: 800, fontFamily: 'var(--font-mono)', color: 'var(--text-pure)' }}>
+                          {req.courseCode}
+                        </span>
+                        <span style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-secondary)' }}>
+                          {req.courseTitle || 'Course Section'}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '0.6rem', padding: '0.7rem', background: 'var(--bg-input)', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-hairline)', fontSize: '0.78rem' }}>
+                      <div>
+                        <span style={{ fontSize: '0.65rem', color: 'var(--text-faint)', textTransform: 'uppercase' }}>Student</span>
+                        <p style={{ margin: 0, fontWeight: 700 }}>{req.lastName}, {req.firstName}</p>
+                        <span style={{ fontSize: '0.7rem', fontFamily: 'var(--font-mono)', color: 'var(--text-muted)' }}>{req.studentNumber}</span>
+                      </div>
+                      <div>
+                        <span style={{ fontSize: '0.65rem', color: 'var(--text-faint)', textTransform: 'uppercase' }}>Program & Remaining</span>
+                        <p style={{ margin: 0, fontWeight: 700, color: 'var(--crimson-bright)' }}>{req.program}</p>
+                        <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>{req.unitsLeft} units left</span>
+                      </div>
+                      <div>
+                        <span style={{ fontSize: '0.65rem', color: 'var(--text-faint)', textTransform: 'uppercase' }}>Current Quota</span>
+                        <p style={{ margin: 0, fontWeight: 700, color: isMet ? 'var(--emerald-core)' : '#d97706' }}>{count} / {MIN_STUDENT_THRESHOLD} Students</p>
+                        <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>{pct}% Threshold</span>
+                      </div>
+                    </div>
+
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '0.15rem' }}>
+                      <div className={`rubber-stamp ${isMet ? 'granted' : 'gathering'}`}>
+                        {isMet ? '★ SECTION GRANTED ★' : 'PETITION RECORDED • GATHERING'}
+                      </div>
+                      {canRemove && (
+                        <button
+                          type="button"
+                          onClick={() => setPendingDeleteId(req.id)}
+                          style={{ fontSize: '0.72rem', color: '#ef4444', background: 'transparent', border: 'none', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '0.35rem', fontWeight: 700 }}
+                        >
+                          <Trash2 size={13} />
+                          <span>{currentUser?.role === 'chair' ? 'Remove Petition' : 'Retract My Petition'}</span>
+                        </button>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Perforated Divider */}
+                  <div className="ticket-divider-perforated">
+                    <div className="ticket-notch-top" />
+                    <div className="ticket-notch-bottom" />
+                  </div>
+
+                  {/* Stub */}
+                  <div className="ticket-stub">
+                    <div style={{ width: '100%' }}>
+                      <span style={{ fontSize: '0.65rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase' }}>
+                        PASS REF
+                      </span>
+                      <div style={{ fontSize: '1.05rem', fontWeight: 800, fontFamily: 'var(--font-mono)', color: 'var(--crimson-bright)', margin: '0.15rem 0' }}>
+                        {req.id}
+                      </div>
+                    </div>
+
+                    <div style={{ margin: '0.75rem 0' }}>
+                      <div className="decorative-barcode">
+                        |||| || |||||| | |||
+                      </div>
+                      <span style={{ fontSize: '0.62rem', fontFamily: 'var(--font-mono)', color: 'var(--text-faint)' }}>
+                        SOIT-PASS-GATE
+                      </span>
+                    </div>
+
+                    <button
+                      type="button"
+                      className="action-pill-btn"
+                      onClick={() => handleCopy(req.id)}
+                      style={{ width: '100%', justifyContent: 'center', fontSize: '0.72rem' }}
+                    >
+                      <Copy size={12} />
+                      <span>{copiedId === req.id ? 'Copied' : 'Copy Ref'}</span>
+                    </button>
+                  </div>
+                </div>
+              );
+            }
 
             return (
               <div 

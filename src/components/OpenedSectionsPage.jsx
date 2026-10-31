@@ -12,6 +12,7 @@ import {
   Clock
 } from 'lucide-react';
 import { DEFAULT_CHAIR_CONSULTATIONS, canAdminManageCourse } from '../services/adminAuth';
+import { getChairPresenceStatus } from '../utils/consultationSchedule';
 
 const PROGRAM_CHAIR_ORDER = [
   { email: 'jpqtomas@mapua.edu.ph', dept: 'CS', fallbackName: 'Sir JP', fallbackEmail: 'JPQTomas@mapua.edu.ph', deptFull: 'Computer Science (CS)' },
@@ -559,18 +560,34 @@ export default function OpenedSectionsPage({
                   }}
                 >
                   <div>
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.5rem', marginBottom: '0.35rem' }}>
-                      <span style={{
-                        fontSize: '0.72rem',
-                        fontWeight: 800,
-                        padding: '0.18rem 0.55rem',
-                        borderRadius: '6px',
-                        background: 'rgba(185, 28, 28, 0.1)',
-                        color: 'var(--crimson-bright)'
-                      }}>
-                        {item.deptFull}
-                      </span>
-                    </div>
+                    {(() => {
+                      const firstSlot = slots[0];
+                      const presence = getChairPresenceStatus(
+                        slots.map(s => s.day).join(', '),
+                        firstSlot ? `${firstSlot.startTime} - ${firstSlot.endTime}` : ''
+                      );
+
+                      return (
+                        <>
+                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.5rem', marginBottom: '0.35rem' }}>
+                            <span style={{
+                              fontSize: '0.72rem',
+                              fontWeight: 800,
+                              padding: '0.18rem 0.55rem',
+                              borderRadius: '6px',
+                              background: 'rgba(185, 28, 28, 0.1)',
+                              color: 'var(--crimson-bright)'
+                            }}>
+                              {item.deptFull}
+                            </span>
+                            <span className={presence.inSession ? "presence-beacon" : "mono-tag"} style={{ color: presence.color, fontSize: '0.68rem', fontWeight: 700 }}>
+                              {presence.inSession && <span className="presence-beacon-dot" />}
+                              <span>{presence.statusLabel}</span>
+                            </span>
+                          </div>
+                        </>
+                      );
+                    })()}
 
                     <div style={{ fontSize: '0.96rem', fontWeight: 800, color: 'var(--text-pure)' }}>
                       {displayName}

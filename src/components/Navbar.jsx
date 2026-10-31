@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { 
   GraduationCap, 
   BookOpen, 
@@ -30,8 +30,26 @@ export default function Navbar({
   loginView = 'select',
   setLoginView,
   openedSectionsCount = 0,
-  quarterState
+  quarterState,
+  coursesWithDemand = [],
+  requests = [],
+  openedSections = [],
+  onSectionActionChange
 }) {
+  // Dynamic Island Logic
+  const readyToOpenCourse = useMemo(() => {
+    if (currentUser?.role !== 'chair' || !coursesWithDemand) return null;
+    return coursesWithDemand.find(c => {
+      const cnt = c.count || c.requestCount || 0;
+      const isOpen = Array.isArray(openedSections) && openedSections.some(s => String(s.code).toUpperCase() === String(c.code).toUpperCase() && s.actionType === 'OPEN');
+      return cnt >= 15 && !isOpen;
+    });
+  }, [currentUser, coursesWithDemand, openedSections]);
+
+  const studentActivePetitionsCount = useMemo(() => {
+    if (currentUser?.role !== 'student' || !requests || !currentUser?.studentNumber) return 0;
+    return requests.filter(r => String(r.studentNumber).trim() === String(currentUser.studentNumber).trim()).length;
+  }, [currentUser, requests]);
   const [showRoleMenu, setShowRoleMenu] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
@@ -112,6 +130,77 @@ export default function Navbar({
               </span>
             </p>
           </div>
+
+          {/* Morphing Dynamic Island Capsule */}
+          {readyToOpenCourse && currentTab !== 'login' && (
+            <div 
+              className="dynamic-island-capsule"
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '0.45rem',
+                padding: '0.22rem 0.65rem',
+                borderRadius: 'var(--radius-full)',
+                background: 'rgba(16, 185, 129, 0.14)',
+                border: '1px solid var(--emerald-border)',
+                color: 'var(--emerald-core)',
+                fontSize: '0.72rem',
+                fontWeight: 700,
+                marginLeft: '0.4rem'
+              }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <Sparkles size={12} style={{ color: '#fbbf24' }} />
+              <span><strong>{readyToOpenCourse.code}</strong> Hit 15!</span>
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  if (onSectionActionChange) onSectionActionChange(readyToOpenCourse, 'OPEN');
+                }}
+                style={{
+                  padding: '0.12rem 0.45rem',
+                  borderRadius: '999px',
+                  background: 'var(--emerald-core)',
+                  color: '#ffffff',
+                  fontSize: '0.65rem',
+                  fontWeight: 800,
+                  border: 'none',
+                  cursor: 'pointer'
+                }}
+              >
+                Quick Open
+              </button>
+            </div>
+          )}
+
+          {studentActivePetitionsCount > 0 && currentTab !== 'login' && !readyToOpenCourse && (
+            <div 
+              className="dynamic-island-capsule"
+              onClick={(e) => {
+                e.stopPropagation();
+                handleNavClick('track');
+              }}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '0.35rem',
+                padding: '0.22rem 0.6rem',
+                borderRadius: 'var(--radius-full)',
+                background: 'rgba(217, 119, 6, 0.12)',
+                border: '1px solid rgba(217, 119, 6, 0.35)',
+                color: 'var(--gold-bright)',
+                fontSize: '0.71rem',
+                fontWeight: 700,
+                cursor: 'pointer',
+                marginLeft: '0.4rem'
+              }}
+              title="Click to track your petitions"
+            >
+              <Ticket size={11} style={{ color: 'var(--crimson-bright)' }} />
+              <span>{studentActivePetitionsCount} Active Pass{studentActivePetitionsCount > 1 ? 'es' : ''}</span>
+            </div>
+          )}
         </div>
 
         {/* Floating Navigation Pill Dock */}

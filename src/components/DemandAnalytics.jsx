@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import KineticCounter from './KineticCounter';
+import DemandConstellation from './DemandConstellation';
 import { 
   BarChart3, 
   CheckCircle2, 
@@ -10,7 +11,8 @@ import {
   Filter,
   Download,
   FileSpreadsheet,
-  Lock
+  Lock,
+  Sparkles
 } from 'lucide-react';
 import { MIN_STUDENT_THRESHOLD, DEPARTMENTS } from '../data/courses';
 import { canAdminManageCourse, inferCourseDepartment } from '../services/adminAuth';
@@ -23,6 +25,7 @@ export default function DemandAnalytics({
 }) {
   const [selectedDept, setSelectedDept] = useState('ALL');
   const [search, setSearch] = useState('');
+  const [analyticsViewMode, setAnalyticsViewMode] = useState('standard'); // 'standard' | 'constellation'
   const [hoveredCourseCode, setHoveredCourseCode] = useState(null);
   const [selectedExportCourse, setSelectedExportCourse] = useState('');
   const [exportToast, setExportToast] = useState('');
@@ -327,7 +330,37 @@ export default function DemandAnalytics({
         </div>
       </div>
 
-      {/* Visual Analytics Section: Benchmark Bar Graph + Readiness & Dept Breakdown */}
+      {/* View Switcher Toggle */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '0.5rem', marginBottom: '-0.35rem' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', background: 'var(--bg-card)', padding: '0.25rem', borderRadius: 'var(--radius-full)', border: '1px solid var(--border-hairline)' }}>
+          <button
+            type="button"
+            className={`action-pill-btn ${analyticsViewMode === 'standard' ? 'active' : ''}`}
+            onClick={() => setAnalyticsViewMode('standard')}
+            style={{ padding: '0.3rem 0.75rem', fontSize: '0.75rem', borderRadius: 'var(--radius-full)', background: analyticsViewMode === 'standard' ? 'linear-gradient(135deg, var(--crimson-core), #7f1d1d)' : 'transparent', color: analyticsViewMode === 'standard' ? '#ffffff' : 'var(--text-muted)' }}
+          >
+            <BarChart3 size={13} />
+            <span>Benchmark Analytics</span>
+          </button>
+          <button
+            type="button"
+            className={`action-pill-btn ${analyticsViewMode === 'constellation' ? 'active' : ''}`}
+            onClick={() => setAnalyticsViewMode('constellation')}
+            style={{ padding: '0.3rem 0.75rem', fontSize: '0.75rem', borderRadius: 'var(--radius-full)', background: analyticsViewMode === 'constellation' ? 'linear-gradient(135deg, var(--crimson-core), #7f1d1d)' : 'transparent', color: analyticsViewMode === 'constellation' ? '#ffffff' : 'var(--text-muted)' }}
+          >
+            <Sparkles size={13} style={{ color: '#fbbf24' }} />
+            <span>Constellation Radar</span>
+          </button>
+        </div>
+      </div>
+
+      {analyticsViewMode === 'constellation' ? (
+        <DemandConstellation 
+          coursesWithDemand={coursesWithDemand} 
+          onSelectCourse={(c) => setSearch(c.code)} 
+        />
+      ) : (
+      /* Visual Analytics Section: Benchmark Bar Graph + Readiness & Dept Breakdown */
       <div style={{
         display: 'grid',
         gridTemplateColumns: 'repeat(auto-fit, minmax(340px, 1fr))',
@@ -652,6 +685,7 @@ export default function DemandAnalytics({
           </div>
         </div>
       </div>
+      )}
 
       {/* All Courses Filter & Search Catalog */}
       <div className="dossier-card" style={{ padding: '1.5rem' }}>
