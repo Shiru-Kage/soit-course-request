@@ -14,12 +14,12 @@ import {
 
 // Configuration loaded securely from environment variables (or Mapua project defaults)
 export const FIREBASE_CONFIG = {
-  apiKey: import.meta.env.VITE_FIREBASE_API_KEY || "AIzaSyCkZSiWHLb8qrzUAiocgrijAaQ5dujYJWo",
-  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || "mapua-schedpoint.firebaseapp.com",
-  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID || "mapua-schedpoint",
-  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || "mapua-schedpoint.firebasestorage.app",
-  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID || "670467479029",
-  appId: import.meta.env.VITE_FIREBASE_APP_ID || "1:670467479029:web:5a91bb3e3cd85ca51bbcbc"
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY || "AIzaSyBUIMVm-X3tHDGHRcMNUzMx6eRsiT_D9bQ",
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || "soit-course-request.firebaseapp.com",
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID || "soit-course-request",
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || "soit-course-request.firebasestorage.app",
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID || "196546918268",
+  appId: import.meta.env.VITE_FIREBASE_APP_ID || "1:196546918268:web:46f29b819165c9539856f9"
 };
 
 export function getFirebaseDb() {
