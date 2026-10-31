@@ -8,6 +8,8 @@ import RoleLoginPage from './components/RoleLoginPage';
 import StudentProfilePage from './components/StudentProfilePage';
 import OpenedSectionsPage from './components/OpenedSectionsPage';
 import ConfirmationModal from './components/ConfirmationModal';
+import InteractiveAtmosphere from './components/InteractiveAtmosphere';
+import MilestoneCelebration from './components/MilestoneCelebration';
 import { SOIT_COURSES } from './data/courses';
 import { 
   fetchAllRequests, 
@@ -76,6 +78,7 @@ export default function App() {
   const [confirmedRequest, setConfirmedRequest] = useState(null);
   const [trackerInitialQuery, setTrackerInitialQuery] = useState('');
   const [loginView, setLoginView] = useState('select');
+  const [showMilestoneCelebration, setShowMilestoneCelebration] = useState(false);
 
   // Apply Theme
   useEffect(() => {
@@ -217,7 +220,12 @@ export default function App() {
     const res = await submitCourseRequest(data);
     if (res.success) {
       setCustomCourses(getCustomCourses());
-      setRequests(prev => prev.some(r => r.id === res.request.id) ? prev : [...prev, res.request]);
+      setRequests(prev => {
+        const next = prev.some(r => r.id === res.request.id) ? prev : [...prev, res.request];
+        const count = next.filter(r => String(r.courseCode).toUpperCase() === String(res.request.courseCode).toUpperCase()).length;
+        if (count >= 15) setShowMilestoneCelebration(true);
+        return next;
+      });
       setConfirmedRequest(res.request);
     }
     return res;
@@ -253,6 +261,7 @@ export default function App() {
     } else {
       const mode = actionType === 'CONSULTATION' ? 'CONSULTATION' : 'OPEN';
       const next = await openCourseSection(course, currentUser?.email || 'Program Chair', mode);
+      if (mode === 'OPEN') setShowMilestoneCelebration(true);
       setOpenedSections(next);
       const targetStatus = mode === 'CONSULTATION' ? 'For Consultation' : 'Section Opened';
       setRequests(prev => prev.map(r =>
@@ -314,6 +323,11 @@ export default function App() {
 
   return (
     <div className="app-container">
+      <InteractiveAtmosphere />
+      <MilestoneCelebration 
+        active={showMilestoneCelebration} 
+        onComplete={() => setShowMilestoneCelebration(false)} 
+      />
       {/* Navbar */}
       <Navbar
         currentTab={currentTab}

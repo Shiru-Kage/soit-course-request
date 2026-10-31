@@ -1,4 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
+import KineticCounter from './KineticCounter';
 import { 
   ShieldCheck, 
   Users, 
@@ -689,43 +690,43 @@ export default function ChairDashboard({
 
       {/* 4 Summary KPI Cards */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '1rem' }}>
-        <div className="dossier-card" style={{ padding: '1.25rem 1.4rem' }}>
+        <div className="dossier-card tilt-card" style={{ padding: '1.25rem 1.4rem' }}>
           <span style={{ fontSize: '0.78rem', fontWeight: 700, color: 'var(--text-muted)' }}>
             Total Student Petitions
           </span>
           <div style={{ fontSize: '1.85rem', fontWeight: 800, color: 'var(--text-pure)', marginTop: '0.25rem', lineHeight: 1.1 }}>
-            {totalRequests}
+            <KineticCounter value={totalRequests} />
           </div>
           <span style={{ fontSize: '0.76rem', color: 'var(--text-faint)', display: 'block', marginTop: '0.3rem' }}>
             Active student submissions
           </span>
         </div>
 
-        <div className="dossier-card" style={{ padding: '1.25rem 1.4rem' }}>
+        <div className="dossier-card tilt-card" style={{ padding: '1.25rem 1.4rem' }}>
           <span style={{ fontSize: '0.78rem', fontWeight: 700, color: 'var(--emerald-core)' }}>
             Reached 15+ Students
           </span>
           <div style={{ fontSize: '1.85rem', fontWeight: 800, color: 'var(--emerald-core)', marginTop: '0.25rem', lineHeight: 1.1 }}>
-            {readyCourses.length}
+            <KineticCounter value={readyCourses.length} />
           </div>
           <span style={{ fontSize: '0.76rem', color: 'var(--text-faint)', display: 'block', marginTop: '0.3rem' }}>
             {openCount} currently opened
           </span>
         </div>
 
-        <div className="dossier-card" style={{ padding: '1.25rem 1.4rem' }}>
+        <div className="dossier-card tilt-card" style={{ padding: '1.25rem 1.4rem' }}>
           <span style={{ fontSize: '0.78rem', fontWeight: 700, color: '#d97706' }}>
             For Consultation
           </span>
           <div style={{ fontSize: '1.85rem', fontWeight: 800, color: '#d97706', marginTop: '0.25rem', lineHeight: 1.1 }}>
-            {consultCount}
+            <KineticCounter value={consultCount} />
           </div>
           <span style={{ fontSize: '0.76rem', color: 'var(--text-faint)', display: 'block', marginTop: '0.3rem' }}>
             {nearReadyCourses.length} courses near threshold (10–14)
           </span>
         </div>
 
-        <div className="dossier-card" style={{ padding: '1.25rem 1.4rem' }}>
+        <div className="dossier-card tilt-card" style={{ padding: '1.25rem 1.4rem' }}>
           <span style={{ fontSize: '0.78rem', fontWeight: 700, color: 'var(--crimson-bright)' }}>
             My Consultation Schedule
           </span>
@@ -887,7 +888,7 @@ export default function ChairDashboard({
                   const needed = Math.max(0, MIN_STUDENT_THRESHOLD - course.requestCount);
 
                   return (
-                    <tr key={course.id || `${course.code}-${idx}`}>
+                    <tr key={course.id || `${course.code}-${idx}`} className={`${isMet ? 'milestone-15-row' : ''} ${isNear ? 'thermal-demand-row' : ''}`.trim() || undefined}>
                       <td style={{ whiteSpace: 'nowrap' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem' }}>
                           <span className="course-mono-code" style={{ fontSize: '0.86rem' }}>{course.code}</span>

@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from 'react';
+import KineticCounter from './KineticCounter';
 import { 
   BarChart3, 
   CheckCircle2, 
@@ -280,7 +281,7 @@ export default function DemandAnalytics({
         gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', 
         gap: '1rem' 
       }}>
-        <div className="dossier-card" style={{ padding: '1.25rem 1.5rem' }}>
+        <div className="dossier-card tilt-card" style={{ padding: '1.25rem 1.5rem' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.35rem' }}>
             <span style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--text-muted)' }}>
               Total Student Petitions
@@ -288,14 +289,14 @@ export default function DemandAnalytics({
             <Users size={16} style={{ color: 'var(--crimson-bright)' }} />
           </div>
           <div style={{ fontSize: '1.85rem', fontWeight: 800, color: 'var(--text-pure)', lineHeight: 1.1 }}>
-            {totalPetitions}
+            <KineticCounter value={totalPetitions} />
           </div>
           <div style={{ fontSize: '0.8rem', color: 'var(--text-faint)', marginTop: '0.3rem' }}>
             Across {activeCourses.length} requested courses
           </div>
         </div>
 
-        <div className="dossier-card" style={{ padding: '1.25rem 1.5rem' }}>
+        <div className="dossier-card tilt-card" style={{ padding: '1.25rem 1.5rem' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.35rem' }}>
             <span style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--emerald-core)' }}>
               Ready to Open (15+ Students)
@@ -303,14 +304,14 @@ export default function DemandAnalytics({
             <CheckCircle2 size={16} style={{ color: 'var(--emerald-core)' }} />
           </div>
           <div style={{ fontSize: '1.85rem', fontWeight: 800, color: 'var(--emerald-core)', lineHeight: 1.1 }}>
-            {thresholdMetCount}
+            <KineticCounter value={thresholdMetCount} />
           </div>
           <div style={{ fontSize: '0.8rem', color: 'var(--text-faint)', marginTop: '0.3rem' }}>
             Qualified for Program Chair scheduling
           </div>
         </div>
 
-        <div className="dossier-card" style={{ padding: '1.25rem 1.5rem' }}>
+        <div className="dossier-card tilt-card" style={{ padding: '1.25rem 1.5rem' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.35rem' }}>
             <span style={{ fontSize: '0.8rem', fontWeight: 700, color: '#d97706' }}>
               Almost Full (10–14 Students)
@@ -318,7 +319,7 @@ export default function DemandAnalytics({
             <Flame size={16} style={{ color: '#d97706' }} />
           </div>
           <div style={{ fontSize: '1.85rem', fontWeight: 800, color: '#d97706', lineHeight: 1.1 }}>
-            {nearThresholdCount}
+            <KineticCounter value={nearThresholdCount} />
           </div>
           <div style={{ fontSize: '0.8rem', color: 'var(--text-faint)', marginTop: '0.3rem' }}>
             Need only 1 to 5 more students
@@ -697,7 +698,7 @@ export default function DemandAnalytics({
             return (
               <div 
                 key={c.id || `${c.code}-${idx}`} 
-                className={`course-tile ${isMet ? 'selected' : ''}`}
+                className={`course-tile ${isMet ? 'selected milestone-15-card' : ''} ${isNear ? 'thermal-demand-card' : ''}`.trim()}
                 style={{ cursor: 'default' }}
               >
                 <div className="course-tile-top">

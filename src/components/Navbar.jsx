@@ -75,13 +75,20 @@ export default function Navbar({
           <div className="brand-text">
             <h1>SOIT Course Request</h1>
             <p style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-              <span
-                className="live-indicator-dot"
-                style={{
-                  backgroundColor: quarterState?.isQuarterOpen === false ? '#f59e0b' : undefined,
-                  boxShadow: quarterState?.isQuarterOpen === false ? '0 0 8px #f59e0b' : undefined
-                }}
-              />
+              <span 
+                className="live-pulse-container" 
+                title={quarterState?.isQuarterOpen === false ? "SOIT Portal: Term Closed" : "SOIT Cluster Node: Synced & Active"}
+              >
+                <span className="live-pulse-ring">
+                  <span 
+                    className="live-pulse-dot-core" 
+                    style={{ 
+                      backgroundColor: quarterState?.isQuarterOpen === false ? '#f59e0b' : undefined,
+                      boxShadow: quarterState?.isQuarterOpen === false ? '0 0 6px #f59e0b' : undefined 
+                    }}
+                  />
+                </span>
+              </span>
               <span className="brand-text-univ">Mapúa University</span>
               <span
                 style={{
