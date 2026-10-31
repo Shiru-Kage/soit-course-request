@@ -217,14 +217,16 @@ export default function RoleLoginPage({ onLoginStudent, onLoginChair, view: cont
     setIsResetting(true);
 
     try {
-      const verify = verifyResetCode(resetEmail, resetCode);
+      const cleanEmail = String(resetEmail || '').trim().toLowerCase();
+      const cleanCode = String(resetCode || '').trim();
+      const verify = await verifyResetCode(cleanEmail, cleanCode);
       if (!verify.success) {
-        setResetError(verify.error);
+        setResetError(verify.error || 'Invalid or expired verification code. Please check and try again.');
         setIsResetting(false);
         return;
       }
 
-      const update = await resetAdminPassword(resetEmail, newPassword);
+      const update = await resetAdminPassword(cleanEmail, newPassword);
       if (update.success) {
         setResetStep(3);
       } else {
