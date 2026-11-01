@@ -1,4 +1,4 @@
-import { hasAdminPrivilege } from '../services/adminAuth';
+import { hasAdminPrivilege, isSuperAdmin, getConsultationProfileForEmail } from '../services/adminAuth';
 import React, { useState, useMemo, useEffect } from 'react';
 import { 
   GraduationCap, 
@@ -40,6 +40,45 @@ export default function Navbar({
   onSectionActionChange
 }) {
   const isUserAdmin = currentUser?.role === 'chair' && hasAdminPrivilege(currentUser?.email);
+
+  const userProfile = useMemo(() => {
+    if (!currentUser) return null;
+    if (currentUser.role === 'chair') {
+      const email = currentUser.email || '';
+      const prof = getConsultationProfileForEmail(email);
+      const isSuper = isSuperAdmin(email);
+      let roleLabel = '';
+      let displayName = '';
+      if (isSuper) {
+        roleLabel = 'System Administrator';
+        displayName = 'Sir Cabalag';
+      } else if (isUserAdmin) {
+        roleLabel = `${prof.dept || 'SOIT'} Chair (Admin)`;
+        displayName = prof.name ? prof.name.replace(/^(Engr\.|Dr\.|Sir|Ma'am)\s*/i, '') : email.split('@')[0];
+      } else {
+        roleLabel = `${prof.dept || 'SOIT'} Chair`;
+        displayName = prof.name ? prof.name.replace(/^(Engr\.|Dr\.|Sir|Ma'am)\s*/i, '') : email.split('@')[0];
+      }
+      return {
+        roleLabel,
+        displayName,
+        badgeLabel: isSuper ? 'Admin • Cabalag' : `${prof.dept || 'Chair'} • ${displayName}`,
+        roleType: isSuper ? 'super_admin' : isUserAdmin ? 'admin' : 'chair'
+      };
+    } else if (currentUser.role === 'student') {
+      const name = currentUser.lastName 
+        ? `${currentUser.firstName ? currentUser.firstName.charAt(0) + '. ' : ''}${currentUser.lastName}`
+        : (currentUser.firstName || 'Student');
+      const sn = currentUser.studentNumber ? `${currentUser.studentNumber}` : '';
+      return {
+        roleLabel: 'Student',
+        displayName: name,
+        badgeLabel: sn ? `${name} (${sn})` : name,
+        roleType: 'student'
+      };
+    }
+    return null;
+  }, [currentUser, isUserAdmin]);
 
   // Dynamic Island Logic
   const readyToOpenCourse = useMemo(() => {
@@ -122,26 +161,6 @@ export default function Navbar({
                 </span>
               </span>
               <span className="brand-text-univ">Mapúa University</span>
-              <span
-                style={{
-                  fontSize: '0.66rem',
-                  fontWeight: 800,
-                  whiteSpace: 'nowrap',
-                  padding: '0.08rem 0.48rem',
-                  borderRadius: '999px',
-                  background: quarterState?.isQuarterOpen === false
-                    ? 'rgba(245, 158, 11, 0.16)'
-                    : 'rgba(16, 185, 129, 0.14)',
-                  color: quarterState?.isQuarterOpen === false
-                    ? '#d97706'
-                    : 'var(--emerald-core)',
-                  border: `1px solid ${quarterState?.isQuarterOpen === false ? 'rgba(245, 158, 11, 0.35)' : 'var(--emerald-border)'}`
-                }}
-              >
-                {quarterState?.isQuarterOpen === false
-                  ? 'Term Closed'
-                  : `Term ${quarterState?.currentQuarter || '2Q2627'}`}
-              </span>
             </p>
           </div>
 
@@ -387,16 +406,20 @@ export default function Navbar({
                 type="button"
                 className="role-pill-badge"
                 onClick={() => setShowRoleMenu(!showRoleMenu)}
-                style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.4rem' }}
+                aria-label="User Profile & Session Menu"
+                title={userProfile ? `${userProfile.roleLabel}: ${userProfile.displayName}` : 'User Profile'}
               >
+                <div className="role-avatar-circle">
+                  {currentUser?.role === 'chair' ? (
+                    <ShieldCheck size={12} style={{ color: isUserAdmin ? 'var(--crimson-bright)' : '#d97706' }} />
+                  ) : (
+                    <User size={12} style={{ color: 'var(--emerald-core)' }} />
+                  )}
+                </div>
                 <span className="role-pill-text">
-                  {currentUser?.role === 'chair' 
-                    ? `Chair (${currentUser.email?.split('@')[0] || 'Admin'})` 
-                    : currentUser?.studentNumber
-                      ? `${currentUser.lastName || currentUser.firstName} (${currentUser.studentNumber})`
-                      : 'Student Portal'}
+                  {userProfile ? userProfile.badgeLabel : 'Account'}
                 </span>
-                <ChevronDown size={12} />
+                <ChevronDown size={12} style={{ opacity: 0.6 }} />
               </button>
 
               {showRoleMenu && (

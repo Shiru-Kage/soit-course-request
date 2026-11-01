@@ -643,17 +643,31 @@ export default function ChairDashboard({
       {/* Clean Page Header */}
       <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', flexWrap: 'wrap', gap: '1rem' }}>
         <div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', color: 'var(--crimson-bright)', marginBottom: '0.25rem' }}>
-            <ShieldCheck size={17} />
-            <span style={{ fontSize: '0.75rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-              Program Chair & Faculty Workspace • Signed in as {myInitialProfile.name} ({activeAdminEmail})
-            </span>
+          <div style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '0.5rem',
+            padding: '0.3rem 0.85rem',
+            borderRadius: '999px',
+            background: hasAdminAccess ? 'rgba(185, 28, 28, 0.08)' : 'rgba(217, 119, 6, 0.08)',
+            border: `1px solid ${hasAdminAccess ? 'rgba(185, 28, 28, 0.2)' : 'rgba(217, 119, 6, 0.2)'}`,
+            color: hasAdminAccess ? 'var(--crimson-bright)' : '#d97706',
+            fontSize: '0.75rem',
+            fontWeight: 700,
+            marginBottom: '0.5rem'
+          }}>
+            <ShieldCheck size={14} />
+            <span>{hasAdminAccess ? 'SOIT System Administration' : `${effectiveAdminDept} Program Chair`}</span>
+            <span style={{ opacity: 0.35 }}>•</span>
+            <span style={{ color: 'var(--text-secondary)', fontWeight: 600 }}>{myInitialProfile.name}</span>
+            <span style={{ opacity: 0.35 }}>•</span>
+            <span style={{ color: 'var(--text-muted)', fontFamily: 'var(--font-mono)', fontSize: '0.72rem' }}>{activeAdminEmail}</span>
           </div>
-          <h1 style={{ fontSize: '1.65rem', fontWeight: 800, letterSpacing: '-0.025em', color: 'var(--text-pure)', margin: 0 }}>
-            Chair Dashboard
+          <h1 style={{ fontSize: '1.75rem', fontWeight: 800, letterSpacing: '-0.025em', color: 'var(--text-pure)', margin: 0 }}>
+            Chair & Faculty Console
           </h1>
-          <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginTop: '0.2rem', marginBottom: 0 }}>
-            Manage section actions (<strong>Open Section</strong>, <strong>For Consultation</strong>, or <strong>Close Section</strong>) and customize your Program Chair consultation schedule.
+          <p style={{ color: 'var(--text-secondary)', fontSize: '0.88rem', marginTop: '0.3rem', marginBottom: 0, lineHeight: 1.5 }}>
+            Manage section actions (<strong>Open Section</strong>, <strong>For Consultation</strong>, or <strong>Close Section</strong>) and customize Program Chair consultation schedules.
           </p>
         </div>
 
@@ -713,50 +727,50 @@ export default function ChairDashboard({
       {/* 4 Summary KPI Cards */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '1rem' }}>
         <div className="dossier-card tilt-card" style={{ padding: '1.25rem 1.4rem' }}>
-          <span style={{ fontSize: '0.78rem', fontWeight: 700, color: 'var(--text-muted)' }}>
+          <span style={{ fontSize: '0.78rem', fontWeight: 700, color: 'var(--text-secondary)' }}>
             Total Student Petitions
           </span>
           <div style={{ fontSize: '1.85rem', fontWeight: 800, color: 'var(--text-pure)', marginTop: '0.25rem', lineHeight: 1.1 }}>
             <KineticCounter value={totalRequests} />
           </div>
-          <span style={{ fontSize: '0.76rem', color: 'var(--text-faint)', display: 'block', marginTop: '0.3rem' }}>
+          <span style={{ fontSize: '0.76rem', color: 'var(--text-muted)', display: 'block', marginTop: '0.3rem' }}>
             Active student submissions
           </span>
         </div>
 
         <div className="dossier-card tilt-card" style={{ padding: '1.25rem 1.4rem' }}>
           <span style={{ fontSize: '0.78rem', fontWeight: 700, color: 'var(--emerald-core)' }}>
-            Reached 15+ Students
+            Ready to Open (15+)
           </span>
           <div style={{ fontSize: '1.85rem', fontWeight: 800, color: 'var(--emerald-core)', marginTop: '0.25rem', lineHeight: 1.1 }}>
             <KineticCounter value={readyCourses.length} />
           </div>
-          <span style={{ fontSize: '0.76rem', color: 'var(--text-faint)', display: 'block', marginTop: '0.3rem' }}>
-            {openCount} currently opened
+          <span style={{ fontSize: '0.76rem', color: 'var(--text-muted)', display: 'block', marginTop: '0.3rem' }}>
+            {openCount} section{openCount !== 1 ? 's' : ''} currently opened
           </span>
         </div>
 
         <div className="dossier-card tilt-card" style={{ padding: '1.25rem 1.4rem' }}>
           <span style={{ fontSize: '0.78rem', fontWeight: 700, color: '#d97706' }}>
-            For Consultation
+            For Consultation (10–14)
           </span>
           <div style={{ fontSize: '1.85rem', fontWeight: 800, color: '#d97706', marginTop: '0.25rem', lineHeight: 1.1 }}>
             <KineticCounter value={consultCount} />
           </div>
-          <span style={{ fontSize: '0.76rem', color: 'var(--text-faint)', display: 'block', marginTop: '0.3rem' }}>
-            {nearReadyCourses.length} courses near threshold (10–14)
+          <span style={{ fontSize: '0.76rem', color: 'var(--text-muted)', display: 'block', marginTop: '0.3rem' }}>
+            {nearReadyCourses.length} course{nearReadyCourses.length !== 1 ? 's' : ''} near threshold
           </span>
         </div>
 
         <div className="dossier-card tilt-card" style={{ padding: '1.25rem 1.4rem' }}>
           <span style={{ fontSize: '0.78rem', fontWeight: 700, color: 'var(--crimson-bright)' }}>
-            My Consultation Schedule
+            My Consultation Slots
           </span>
-          <div style={{ fontSize: '1.15rem', fontWeight: 800, color: 'var(--crimson-bright)', marginTop: '0.35rem', lineHeight: 1.2 }}>
-            {myInitialProfile.name} ({myInitialProfile.dept})
+          <div style={{ fontSize: '1.85rem', fontWeight: 800, color: 'var(--crimson-bright)', marginTop: '0.25rem', lineHeight: 1.1 }}>
+            <KineticCounter value={chairSlots.length} />
           </div>
-          <span style={{ fontSize: '0.76rem', color: 'var(--text-faint)', display: 'block', marginTop: '0.3rem' }}>
-            {chairSlots.length} active consultation time slot{chairSlots.length !== 1 ? 's' : ''}
+          <span style={{ fontSize: '0.76rem', color: 'var(--text-muted)', display: 'block', marginTop: '0.3rem' }}>
+            {myInitialProfile.name} ({myInitialProfile.dept})
           </span>
         </div>
       </div>
