@@ -128,23 +128,41 @@ export default function UserManagementSection({
   }, []);
 
   // Compute category datasets
-  // 1. Program Chairs (Lead department heads + Super Admin)
+  // 1. Super Admin (SOIT System Administrator)
+  const superAdminItem = useMemo(() => {
+    const prof = getConsultationProfileForEmail(SUPER_ADMIN_EMAIL, consultations);
+    return {
+      id: `admin_${SUPER_ADMIN_EMAIL}`,
+      userCategory: 'admin',
+      email: SUPER_ADMIN_EMAIL,
+      name: 'SOIT System Administrator',
+      dept: 'SOIT',
+      programTitle: 'SOIT',
+      isLead: false,
+      isSuper: true,
+      isAdmin: true,
+      consultationSlots: Array.isArray(prof?.slots) ? prof.slots.length : 2,
+      raw: prof
+    };
+  }, [consultations]);
+
+  // 2. Program Chairs (The 5 Lead department heads)
   const chairsList = useMemo(() => {
-    const chairEmails = Object.keys(FIXED_ADMIN_DEPARTMENTS);
+    const chairEmails = Object.keys(FIXED_ADMIN_DEPARTMENTS).filter(e => !isSuperAdmin(e));
     return chairEmails.map(email => {
       const prof = getConsultationProfileForEmail(email, consultations);
       const isLead = isLeadProgramChair(email);
-      const isSuper = isSuperAdmin(email);
+      const isSuper = false;
       const isAdmin = hasAdminPrivilege(email, adminRoleEmails);
       return {
         id: `chair_${email}`,
         userCategory: 'chair',
         email,
-        name: prof.name || (isSuper ? 'SOIT System Administrator' : 'Program Chair'),
+        name: prof.name || 'Program Chair',
         dept: prof.dept || FIXED_ADMIN_DEPARTMENTS[email] || 'CS',
-        programTitle: prof.programTitle || CLUSTER_PROGRAM_LABELS[prof.dept] || 'SOIT Cluster',
+        programTitle: prof.programTitle || CLUSTER_PROGRAM_LABELS[prof.dept] || `${prof.dept} Cluster`,
         isLead,
-        isSuper,
+        isSuper: false,
         isAdmin,
         consultationSlots: Array.isArray(prof.slots) ? prof.slots.length : 0,
         raw: prof
@@ -204,8 +222,8 @@ export default function UserManagementSection({
 
   // 4. Combined All Users
   const allUsersList = useMemo(() => {
-    return [...chairsList, ...facultyList, ...studentsFormatted];
-  }, [chairsList, facultyList, studentsFormatted]);
+    return [superAdminItem, ...chairsList, ...facultyList, ...studentsFormatted];
+  }, [superAdminItem, chairsList, facultyList, studentsFormatted]);
 
   // 5. Admins view
   const adminsOnlyList = useMemo(() => {
@@ -765,6 +783,7 @@ export default function UserManagementSection({
                   style={{ fontSize: '0.78rem', padding: '0.3rem 0.6rem' }}
                 >
                   <option value="ALL">All Clusters</option>
+                  <option value="SOIT">SOIT (Administration)</option>
                   <option value="CS">CS (Computer Science)</option>
                   <option value="IT">IT (Information Technology)</option>
                   <option value="DS">DS (Data Science)</option>
@@ -847,12 +866,16 @@ export default function UserManagementSection({
                             width: 32,
                             height: 32,
                             borderRadius: '50%',
-                            background: u.userCategory === 'student'
+                            background: isSuper
+                              ? 'rgba(185, 28, 28, 0.14)'
+                              : u.userCategory === 'student'
                               ? 'rgba(16, 185, 129, 0.14)'
                               : u.userCategory === 'chair'
                               ? 'rgba(217, 119, 6, 0.16)'
                               : 'rgba(59, 130, 246, 0.14)',
-                            color: u.userCategory === 'student'
+                            color: isSuper
+                              ? 'var(--crimson-bright)'
+                              : u.userCategory === 'student'
                               ? 'var(--emerald-core)'
                               : u.userCategory === 'chair'
                               ? 'var(--gold-bright)'
@@ -906,30 +929,51 @@ export default function UserManagementSection({
 
                       {/* Category & Program */}
                       <td>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', flexWrap: 'wrap' }}>
                           <span style={{
                             display: 'inline-block',
                             fontSize: '0.72rem',
                             fontWeight: 800,
                             padding: '0.18rem 0.5rem',
                             borderRadius: '6px',
-                            background: u.userCategory === 'student'
+                            background: isSuper
+                              ? 'rgba(185, 28, 28, 0.12)'
+                              : u.userCategory === 'student'
                               ? 'rgba(16, 185, 129, 0.1)'
                               : u.userCategory === 'chair'
                               ? 'rgba(217, 119, 6, 0.1)'
                               : 'rgba(59, 130, 246, 0.1)',
-                            color: u.userCategory === 'student'
+                            color: isSuper
+                              ? 'var(--crimson-bright)'
+                              : u.userCategory === 'student'
                               ? 'var(--emerald-core)'
                               : u.userCategory === 'chair'
                               ? '#d97706'
                               : '#2563eb'
                           }}>
-                            {u.userCategory === 'student'
+                            {isSuper
+                              ? 'Admin'
+                              : u.userCategory === 'student'
                               ? `Student • ${u.program}`
                               : u.userCategory === 'chair'
                               ? `Program Chair • ${u.dept}`
                               : `Faculty • ${u.dept}`}
                           </span>
+
+                          {isSuper && (
+                            <span style={{
+                              display: 'inline-block',
+                              fontSize: '0.72rem',
+                              fontWeight: 800,
+                              padding: '0.18rem 0.5rem',
+                              borderRadius: '6px',
+                              background: 'rgba(185, 28, 28, 0.08)',
+                              color: 'var(--text-pure)',
+                              border: '1px solid rgba(185, 28, 28, 0.25)'
+                            }}>
+                              SOIT
+                            </span>
+                          )}
                         </div>
                         {u.unitsLeft && (
                           <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginTop: '0.15rem' }}>
@@ -1127,7 +1171,7 @@ export default function UserManagementSection({
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--crimson-bright)' }}>
                 <Edit3 size={18} />
                 <h3 style={{ margin: 0, fontSize: '1.15rem', fontWeight: 800, color: 'var(--text-pure)' }}>
-                  Edit {editingUser.userCategory === 'student' ? 'Student Profile' : 'Faculty Profile'}
+                  Edit {editingUser.userCategory === 'student' ? 'Student Profile' : isSuperAdmin(editingUser.email) ? 'Administrator Profile' : 'Faculty Profile'}
                 </h3>
               </div>
               <button
@@ -1237,7 +1281,9 @@ export default function UserManagementSection({
               ) : (
                 <>
                   <div className="input-field-group" style={{ marginBottom: 0 }}>
-                    <label className="field-label">Faculty Full Name / Title</label>
+                    <label className="field-label">
+                      {isSuperAdmin(editingUser.email) ? 'Administrator Full Name / Title' : 'Faculty Full Name / Title'}
+                    </label>
                     <input
                       type="text"
                       className="custom-input"
@@ -1254,14 +1300,15 @@ export default function UserManagementSection({
                     <label className="field-label">Assigned Cluster / Department</label>
                     <select
                       className="custom-input"
-                      value={editingUser.data?.dept || editingUser.dept || effectiveAdminDept}
+                      value={isSuperAdmin(editingUser.email) ? 'SOIT' : (editingUser.data?.dept || editingUser.dept || effectiveAdminDept)}
                       onChange={e => setEditingUser({
                         ...editingUser,
                         data: { ...(editingUser.data || editingUser), dept: e.target.value }
                       })}
-                      disabled={!hasAdminAccess || isLeadProgramChair(editingUser.email)}
-                      style={{ fontWeight: 700, opacity: (!hasAdminAccess || isLeadProgramChair(editingUser.email)) ? 0.75 : 1 }}
+                      disabled={isSuperAdmin(editingUser.email) || !hasAdminAccess || isLeadProgramChair(editingUser.email)}
+                      style={{ fontWeight: 700, opacity: (!hasAdminAccess || isLeadProgramChair(editingUser.email) || isSuperAdmin(editingUser.email)) ? 0.75 : 1 }}
                     >
+                      <option value="SOIT">SOIT</option>
                       <option value="CS">CS — Computer Science</option>
                       <option value="IT">IT — Information Technology</option>
                       <option value="DS">DS — Data Science</option>

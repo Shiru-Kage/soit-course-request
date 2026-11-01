@@ -85,7 +85,7 @@ export const DEFAULT_CHAIR_CONSULTATIONS = {
     displayEmail: 'imppcabalag@gmail.com',
     name: 'SOIT System Administrator',
     dept: 'SOIT',
-    programTitle: 'SOIT General Administration (All Courses)',
+    programTitle: 'SOIT',
     slots: [
       { day: 'Tuesday', startTime: '10:00 AM', endTime: '12:00 PM' },
       { day: 'Friday', startTime: '02:00 PM', endTime: '04:00 PM' }
@@ -182,11 +182,12 @@ export const CLUSTER_PROGRAM_LABELS = {
   DS: 'Data Science (DS)',
   EMC: 'Entertainment & Multimedia (EMC)',
   IS: 'Information Systems (IS)',
-  SOIT: 'SOIT General Administration (All Courses)'
+  SOIT: 'SOIT'
 };
 
 export function isLeadProgramChair(email) {
   const norm = normalizeEmail(email);
+  if (norm === SUPER_ADMIN_EMAIL) return false;
   return Boolean(FIXED_ADMIN_DEPARTMENTS[norm]);
 }
 
@@ -574,10 +575,15 @@ function sanitizeConsultationsMap(rawMap) {
     if (dept === 'SOIT' && !isSuperAdmin(norm)) {
       dept = 'CS';
     }
+    if (isSuperAdmin(norm)) {
+      dept = 'SOIT';
+    }
     result[norm] = {
       ...val,
       email: norm,
-      dept
+      dept,
+      name: isSuperAdmin(norm) ? 'SOIT System Administrator' : val.name,
+      programTitle: isSuperAdmin(norm) ? 'SOIT' : val.programTitle
     };
   }
   return result;
