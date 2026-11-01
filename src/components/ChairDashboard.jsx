@@ -795,14 +795,16 @@ export default function ChairDashboard({
             <span>4. Consultation Schedule</span>
           </button>
 
-          <button
-            type="button"
-            className={`chair-tab-btn ${activeTab === 'admins' ? 'active' : ''}`}
-            onClick={() => setActiveTab('admins')}
-          >
-            <KeyRound size={15} />
-            <span>5. Cluster & Admins ({adminEmails.length})</span>
-          </button>
+          {hasAdminAccess && (
+            <button
+              type="button"
+              className={`chair-tab-btn ${activeTab === 'admins' ? 'active' : ''}`}
+              onClick={() => setActiveTab('admins')}
+            >
+              <ShieldCheck size={15} />
+              <span>5. User & Admin Management</span>
+            </button>
+          )}
 
           <button
             type="button"

@@ -368,7 +368,7 @@ export default function RoleLoginPage({ onLoginStudent, onLoginChair, view: cont
                 onClick={() => setView('chair_login')}
                 style={{ width: '100%', padding: '0.95rem 1.5rem', color: 'var(--text-pure)', borderColor: 'var(--border-medium)' }}
               >
-                <span>Faculty / Chair Login</span>
+                <span>Faculty / Chair / Admin Login</span>
                 <ArrowRight size={16} />
               </button>
               <div style={{ fontSize: '0.72rem', color: 'var(--text-faint)', textAlign: 'center', marginTop: '0.65rem' }}>
@@ -415,7 +415,7 @@ export default function RoleLoginPage({ onLoginStudent, onLoginChair, view: cont
                 }}
               >
                 <ShieldCheck size={14} />
-                <span>Switch to Faculty</span>
+                <span>Switch to Faculty / Admin</span>
               </button>
             </div>
 
@@ -1021,7 +1021,7 @@ export default function RoleLoginPage({ onLoginStudent, onLoginChair, view: cont
                 Program Chair Authentication
               </h2>
               <p style={{ fontSize: '0.825rem', color: 'var(--text-muted)', marginTop: '0.2rem' }}>
-                Enter your authorized faculty email and password to access the administrative dashboard.
+                Enter your authorized Program Chair, Faculty, or Administrator email and password to access the dashboard.
               </p>
             </div>
 
@@ -1048,7 +1048,7 @@ export default function RoleLoginPage({ onLoginStudent, onLoginChair, view: cont
               <div className="input-field-group" style={{ marginBottom: 0 }}>
                 <div className="field-label-row">
                   <label className="field-label">
-                    <Mail size={13} /> Authorized Faculty Email
+                    <Mail size={13} /> Authorized Email (Chair / Faculty / Admin)
                   </label>
                 </div>
                 <input
