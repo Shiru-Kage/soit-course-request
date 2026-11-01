@@ -720,7 +720,7 @@ export default function UserManagementSection({
 
         {/* User Accounts Table */}
         <div className="table-responsive">
-          <table className="data-table">
+          <table className="data-table" style={{ minWidth: '920px' }}>
             <thead>
               <tr>
                 <th>User / Account Name</th>
@@ -1024,7 +1024,8 @@ export default function UserManagementSection({
               <button
                 type="button"
                 onClick={() => setEditingUser(null)}
-                style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}
+                className="modal-close-btn"
+                aria-label="Close modal"
               >
                 <X size={18} />
               </button>
@@ -1116,9 +1117,9 @@ export default function UserManagementSection({
                       })}
                       style={{ fontWeight: 700 }}
                     >
-                      {Object.keys(SOIT_PROGRAMS).map(code => (
-                        <option key={code} value={code}>
-                          {code} — {SOIT_PROGRAMS[code].title}
+                      {SOIT_PROGRAMS.map(prog => (
+                        <option key={prog.code} value={prog.code}>
+                          {prog.code} — {prog.name}
                         </option>
                       ))}
                     </select>
@@ -1167,6 +1168,7 @@ export default function UserManagementSection({
                   type="button"
                   className="btn-secondary-ghost"
                   onClick={() => setEditingUser(null)}
+                  style={{ padding: '0.65rem 1.25rem', fontSize: '0.82rem', fontWeight: 700 }}
                 >
                   Cancel
                 </button>
@@ -1197,7 +1199,8 @@ export default function UserManagementSection({
               <button
                 type="button"
                 onClick={() => setPasswordResetUser(null)}
-                style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}
+                className="modal-close-btn"
+                aria-label="Close modal"
               >
                 <X size={18} />
               </button>
@@ -1276,6 +1279,7 @@ export default function UserManagementSection({
                   type="button"
                   className="btn-secondary-ghost"
                   onClick={() => setPasswordResetUser(null)}
+                  style={{ padding: '0.65rem 1.25rem', fontSize: '0.82rem', fontWeight: 700 }}
                 >
                   Cancel
                 </button>
@@ -1323,6 +1327,7 @@ export default function UserManagementSection({
                 type="button"
                 className="btn-secondary-ghost"
                 onClick={() => setDeletingUser(null)}
+                style={{ padding: '0.65rem 1.25rem', fontSize: '0.82rem', fontWeight: 700 }}
               >
                 Cancel
               </button>
@@ -1365,7 +1370,8 @@ export default function UserManagementSection({
               <button
                 type="button"
                 onClick={() => setShowAddUserModal(false)}
-                style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}
+                className="modal-close-btn"
+                aria-label="Close modal"
               >
                 <X size={18} />
               </button>
@@ -1468,6 +1474,7 @@ export default function UserManagementSection({
                     type="button"
                     className="btn-secondary-ghost"
                     onClick={() => setShowAddUserModal(false)}
+                    style={{ padding: '0.65rem 1.25rem', fontSize: '0.82rem', fontWeight: 700 }}
                   >
                     Cancel
                   </button>
@@ -1555,9 +1562,9 @@ export default function UserManagementSection({
                       onChange={e => setNewStudentData({ ...newStudentData, program: e.target.value })}
                       style={{ fontWeight: 700 }}
                     >
-                      {Object.keys(SOIT_PROGRAMS).map(code => (
-                        <option key={code} value={code}>
-                          {code} — {SOIT_PROGRAMS[code].title}
+                      {SOIT_PROGRAMS.map(prog => (
+                        <option key={prog.code} value={prog.code}>
+                          {prog.code} — {prog.name}
                         </option>
                       ))}
                     </select>
@@ -1580,6 +1587,7 @@ export default function UserManagementSection({
                     type="button"
                     className="btn-secondary-ghost"
                     onClick={() => setShowAddUserModal(false)}
+                    style={{ padding: '0.65rem 1.25rem', fontSize: '0.82rem', fontWeight: 700 }}
                   >
                     Cancel
                   </button>
