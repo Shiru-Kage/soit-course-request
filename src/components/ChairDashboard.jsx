@@ -156,11 +156,6 @@ export default function ChairDashboard({
     });
   }, [activeAdminEmail]);
 
-  useEffect(() => {
-    if (!hasAdminAccess && activeTab === 'admins') {
-      setActiveTab('courses');
-    }
-  }, [hasAdminAccess, activeTab]);
   const hasSuperAdminAccess = isSuperAdmin(activeAdminEmail);
   const myInitialProfile = useMemo(
     () => getConsultationProfileForEmail(activeAdminEmail, consultations),
@@ -814,16 +809,16 @@ export default function ChairDashboard({
             <span>4. Consultation Schedule</span>
           </button>
 
-          {hasAdminAccess && (
-            <button
-              type="button"
-              className={`chair-tab-btn ${activeTab === 'admins' ? 'active' : ''}`}
-              onClick={() => setActiveTab('admins')}
-            >
-              <ShieldCheck size={15} />
-              <span>5. User & Admin Management</span>
-            </button>
-          )}
+          <button
+            type="button"
+            className={`chair-tab-btn ${activeTab === 'admins' ? 'active' : ''}`}
+            onClick={() => setActiveTab('admins')}
+          >
+            <ShieldCheck size={15} />
+            <span>
+              {hasAdminAccess ? '5. User & Admin Management' : `5. ${effectiveAdminDept} Cluster & Faculty Management`}
+            </span>
+          </button>
 
           <button
             type="button"
@@ -1546,13 +1541,15 @@ export default function ChairDashboard({
       )}
     
       {/* TAB 5: CLUSTER & ADMIN MANAGEMENT */}
-      {activeTab === 'admins' && hasAdminAccess && (
+      {activeTab === 'admins' && (
         <UserManagementSection
           activeAdminEmail={activeAdminEmail}
           consultations={consultations}
           adminEmails={adminEmails}
           adminRoleEmails={adminRoleEmails}
           requests={requests}
+          effectiveAdminDept={effectiveAdminDept}
+          hasAdminAccess={hasAdminAccess}
           onRefreshData={() => {
             setAdminEmails(getAllowedAdminEmails());
             fetchAdminRolesFromCloud().then(r => setAdminRoleEmails(r));

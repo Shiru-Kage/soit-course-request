@@ -48,7 +48,7 @@ import {
   adminDeleteStudentAccount,
   registerStudentAccount
 } from '../services/studentAuth';
-import { SOIT_PROGRAMS } from '../data/programs';
+import { SOIT_PROGRAMS, getClusterForProgram, getProgramsForCluster } from '../data/programs';
 
 export default function UserManagementSection({
   activeAdminEmail,
@@ -56,6 +56,8 @@ export default function UserManagementSection({
   adminEmails = [],
   adminRoleEmails = [],
   requests = [],
+  effectiveAdminDept = 'CS',
+  hasAdminAccess = false,
   onRefreshData,
   onAdminRolesChanged,
   onConsultationsChanged
@@ -63,7 +65,7 @@ export default function UserManagementSection({
   // Category tabs: 'all' | 'students' | 'faculty' | 'chairs' | 'admins'
   const [userCategory, setUserCategory] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
-  const [clusterFilter, setClusterFilter] = useState('ALL');
+  const [clusterFilter, setClusterFilter] = useState(hasAdminAccess ? 'ALL' : effectiveAdminDept);
   const [adminStatusFilter, setAdminStatusFilter] = useState('ALL'); // 'ALL' | 'ADMIN' | 'NON_ADMIN'
 
   // Student accounts state
@@ -85,7 +87,7 @@ export default function UserManagementSection({
   // Add Faculty Form State
   const [newFacultyEmail, setNewFacultyEmail] = useState('');
   const [newFacultyName, setNewFacultyName] = useState('');
-  const [newFacultyCluster, setNewFacultyCluster] = useState('CS');
+  const [newFacultyCluster, setNewFacultyCluster] = useState(hasAdminAccess ? 'CS' : effectiveAdminDept);
   const [newFacultyGrantAdmin, setNewFacultyGrantAdmin] = useState(false);
 
   // Add Student Form State
@@ -94,7 +96,7 @@ export default function UserManagementSection({
     email: '',
     firstName: '',
     lastName: '',
-    program: 'CS',
+    program: hasAdminAccess ? 'CS' : (getProgramsForCluster(effectiveAdminDept)[0]?.code || effectiveAdminDept),
     unitsLeft: '33',
     password: '1234'
   });
@@ -210,6 +212,31 @@ export default function UserManagementSection({
     return allUsersList.filter(u => u.isAdmin);
   }, [allUsersList]);
 
+  // Cluster-scoped count calculations for Program Chairs
+  const clusterTotalCount = useMemo(() => {
+    return allUsersList.filter(u => {
+      const userCluster = u.userCategory === 'student' ? getClusterForProgram(u.program) : (u.dept || 'CS');
+      return String(userCluster).toUpperCase() === String(effectiveAdminDept).toUpperCase();
+    }).length;
+  }, [allUsersList, effectiveAdminDept]);
+
+  const clusterStudentsCount = useMemo(() => {
+    return studentsFormatted.filter(u => {
+      return String(getClusterForProgram(u.program)).toUpperCase() === String(effectiveAdminDept).toUpperCase();
+    }).length;
+  }, [studentsFormatted, effectiveAdminDept]);
+
+  const clusterFacultyCount = useMemo(() => {
+    return facultyList.filter(u => {
+      return String(u.dept || 'CS').toUpperCase() === String(effectiveAdminDept).toUpperCase();
+    }).length;
+  }, [facultyList, effectiveAdminDept]);
+
+  const actorProfile = useMemo(
+    () => getConsultationProfileForEmail(activeAdminEmail, consultations),
+    [activeAdminEmail, consultations]
+  );
+
   // Filtered dataset according to category, search, cluster, and admin filter
   const displayedUsers = useMemo(() => {
     let list = allUsersList;
@@ -219,10 +246,18 @@ export default function UserManagementSection({
     else if (userCategory === 'admins') list = adminsOnlyList;
 
     return list.filter(u => {
-      // Cluster filter
-      if (clusterFilter !== 'ALL') {
-        const userCluster = u.dept || u.program;
-        if (userCluster !== clusterFilter) return false;
+      // Cluster determination
+      const userCluster = u.userCategory === 'student' ? getClusterForProgram(u.program) : (u.dept || 'CS');
+
+      if (!hasAdminAccess) {
+        // Non-admin program chairs are strictly restricted to their own cluster
+        if (String(userCluster).toUpperCase() !== String(effectiveAdminDept).toUpperCase()) {
+          return false;
+        }
+      } else if (clusterFilter !== 'ALL') {
+        if (String(userCluster).toUpperCase() !== String(clusterFilter).toUpperCase()) {
+          return false;
+        }
       }
 
       // Admin status filter
@@ -235,13 +270,13 @@ export default function UserManagementSection({
         const matchName = String(u.name || '').toLowerCase().includes(q);
         const matchEmail = String(u.email || '').toLowerCase().includes(q);
         const matchNum = String(u.studentNumber || '').toLowerCase().includes(q);
-        const matchCluster = String(u.dept || u.program || '').toLowerCase().includes(q);
+        const matchCluster = String(u.dept || u.program || userCluster || '').toLowerCase().includes(q);
         return matchName || matchEmail || matchNum || matchCluster;
       }
 
       return true;
     });
-  }, [userCategory, allUsersList, studentsFormatted, facultyList, chairsList, adminsOnlyList, clusterFilter, adminStatusFilter, searchQuery]);
+  }, [userCategory, allUsersList, studentsFormatted, facultyList, chairsList, adminsOnlyList, clusterFilter, adminStatusFilter, searchQuery, hasAdminAccess, effectiveAdminDept]);
 
   // Role Toggle Handler
   const handleToggleAdminRole = async (targetUser) => {
@@ -378,12 +413,13 @@ export default function UserManagementSection({
   const handleCreateFaculty = async (e) => {
     e.preventDefault();
     try {
-      const res = addAdminEmail(newFacultyEmail, newFacultyCluster, newFacultyName, activeAdminEmail);
+      const targetCluster = hasAdminAccess ? newFacultyCluster : effectiveAdminDept;
+      const res = addAdminEmail(newFacultyEmail, targetCluster, newFacultyName, activeAdminEmail);
       if (res.success) {
-        if (newFacultyGrantAdmin) {
+        if (hasAdminAccess && newFacultyGrantAdmin) {
           await grantAdminPrivilege(newFacultyEmail, activeAdminEmail);
         }
-        showMsg(`Successfully authorized faculty "${newFacultyEmail}" under ${newFacultyCluster} cluster.`, 'success');
+        showMsg(`Successfully authorized faculty "${newFacultyEmail}" under ${targetCluster} cluster.`, 'success');
         setShowAddUserModal(false);
         setNewFacultyEmail('');
         setNewFacultyName('');
@@ -410,7 +446,7 @@ export default function UserManagementSection({
           email: '',
           firstName: '',
           lastName: '',
-          program: 'CS',
+          program: hasAdminAccess ? 'CS' : (getProgramsForCluster(effectiveAdminDept)[0]?.code || effectiveAdminDept),
           unitsLeft: '33',
           password: '1234'
         });
@@ -461,25 +497,28 @@ export default function UserManagementSection({
                   textTransform: 'uppercase', 
                   letterSpacing: '0.05em' 
                 }}>
-                  SOIT Master Security Authority
+                  {hasAdminAccess ? 'SOIT Master Security Authority' : `${effectiveAdminDept} Program Chair Authority`}
                 </span>
                 <span style={{
                   fontSize: '0.68rem',
                   fontWeight: 800,
                   padding: '0.15rem 0.5rem',
                   borderRadius: '999px',
-                  background: 'rgba(217, 119, 6, 0.16)',
-                  color: 'var(--gold-bright)',
-                  border: '1px solid rgba(217, 119, 6, 0.35)'
+                  background: hasAdminAccess ? 'rgba(217, 119, 6, 0.16)' : 'rgba(16, 185, 129, 0.14)',
+                  color: hasAdminAccess ? 'var(--gold-bright)' : 'var(--emerald-core)',
+                  border: `1px solid ${hasAdminAccess ? 'rgba(217, 119, 6, 0.35)' : 'var(--emerald-border)'}`
                 }}>
-                  ADMIN ACCESS ONLY
+                  {hasAdminAccess ? 'ADMIN ACCESS ONLY' : `${effectiveAdminDept} CLUSTER SCOPE`}
                 </span>
               </div>
               <h2 style={{ fontSize: '1.35rem', fontWeight: 800, margin: '0.2rem 0', color: 'var(--text-pure)' }}>
-                Account Information & Security Management
+                {hasAdminAccess ? 'Account Information & Security Management' : `${effectiveAdminDept} Cluster & Faculty Management`}
               </h2>
               <p style={{ fontSize: '0.82rem', color: 'var(--text-muted)', margin: 0 }}>
-                Manage account details, credentials, and permissions across all SOIT users. Grant or revoke Administrator privileges for Chairs and Faculty.
+                {hasAdminAccess 
+                  ? 'Manage account details, credentials, and permissions across all SOIT users. Grant or revoke Administrator privileges for Chairs and Faculty.'
+                  : `Authorize emails to serve under the ${effectiveAdminDept} cluster and manage student accounts and faculty members in your department.`
+                }
               </p>
             </div>
           </div>
@@ -504,7 +543,7 @@ export default function UserManagementSection({
               style={{ padding: '0.65rem 1.25rem', fontSize: '0.82rem' }}
             >
               <UserPlus size={15} />
-              <span>+ Provision New User</span>
+              <span>{hasAdminAccess ? '+ Provision New User' : `+ Add ${effectiveAdminDept} Member / Email`}</span>
             </button>
           </div>
         </div>
@@ -524,9 +563,18 @@ export default function UserManagementSection({
               <GraduationCap size={22} />
             </div>
             <div>
-              <div style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-muted)' }}>Registered Students</div>
-              <div style={{ fontSize: '1.4rem', fontWeight: 800, color: 'var(--text-pure)' }}>{studentsFormatted.length}</div>
-              <div style={{ fontSize: '0.7rem', color: 'var(--emerald-core)', fontWeight: 600 }}>{studentsFormatted.filter(s => s.petitionCount > 0).length} active petitioners</div>
+              <div style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-muted)' }}>
+                {hasAdminAccess ? 'Registered Students' : `${effectiveAdminDept} Students`}
+              </div>
+              <div style={{ fontSize: '1.4rem', fontWeight: 800, color: 'var(--text-pure)' }}>
+                {hasAdminAccess ? studentsFormatted.length : clusterStudentsCount}
+              </div>
+              <div style={{ fontSize: '0.7rem', color: 'var(--emerald-core)', fontWeight: 600 }}>
+                {hasAdminAccess 
+                  ? `${studentsFormatted.filter(s => s.petitionCount > 0).length} active petitioners`
+                  : `${studentsFormatted.filter(s => getClusterForProgram(s.program) === effectiveAdminDept && s.petitionCount > 0).length} active petitioners`
+                }
+              </div>
             </div>
           </div>
 
@@ -543,9 +591,15 @@ export default function UserManagementSection({
               <Users size={22} />
             </div>
             <div>
-              <div style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-muted)' }}>Cluster Faculty</div>
-              <div style={{ fontSize: '1.4rem', fontWeight: 800, color: 'var(--text-pure)' }}>{facultyList.length}</div>
-              <div style={{ fontSize: '0.7rem', color: 'var(--text-light)', fontWeight: 600 }}>Across 5 clusters</div>
+              <div style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-muted)' }}>
+                {hasAdminAccess ? 'Cluster Faculty' : `${effectiveAdminDept} Faculty`}
+              </div>
+              <div style={{ fontSize: '1.4rem', fontWeight: 800, color: 'var(--text-pure)' }}>
+                {hasAdminAccess ? facultyList.length : clusterFacultyCount}
+              </div>
+              <div style={{ fontSize: '0.7rem', color: 'var(--text-light)', fontWeight: 600 }}>
+                {hasAdminAccess ? 'Across 5 clusters' : `Authorized for ${effectiveAdminDept}`}
+              </div>
             </div>
           </div>
 
@@ -562,9 +616,15 @@ export default function UserManagementSection({
               <BookOpen size={22} />
             </div>
             <div>
-              <div style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-muted)' }}>Lead Program Chairs</div>
-              <div style={{ fontSize: '1.4rem', fontWeight: 800, color: 'var(--text-pure)' }}>{chairsList.length}</div>
-              <div style={{ fontSize: '0.7rem', color: 'var(--text-light)', fontWeight: 600 }}>CS, IT, DS, EMC, IS, SOIT</div>
+              <div style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-muted)' }}>
+                {hasAdminAccess ? 'Lead Program Chairs' : 'Cluster Chair'}
+              </div>
+              <div style={{ fontSize: '1.4rem', fontWeight: 800, color: 'var(--text-pure)' }}>
+                {hasAdminAccess ? chairsList.length : (actorProfile.name || 'Chair')}
+              </div>
+              <div style={{ fontSize: '0.7rem', color: 'var(--text-light)', fontWeight: 600 }}>
+                {hasAdminAccess ? 'CS, IT, DS, EMC, IS, SOIT' : `${effectiveAdminDept} Department Head`}
+              </div>
             </div>
           </div>
 
@@ -581,9 +641,15 @@ export default function UserManagementSection({
               <ShieldCheck size={22} />
             </div>
             <div>
-              <div style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-muted)' }}>System Administrators</div>
-              <div style={{ fontSize: '1.4rem', fontWeight: 800, color: 'var(--crimson-bright)' }}>{adminsOnlyList.length}</div>
-              <div style={{ fontSize: '0.7rem', color: 'var(--crimson-bright)', fontWeight: 600 }}>Full permission authority</div>
+              <div style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-muted)' }}>
+                {hasAdminAccess ? 'System Administrators' : 'Cluster Members'}
+              </div>
+              <div style={{ fontSize: '1.4rem', fontWeight: 800, color: 'var(--crimson-bright)' }}>
+                {hasAdminAccess ? adminsOnlyList.length : clusterTotalCount}
+              </div>
+              <div style={{ fontSize: '0.7rem', color: 'var(--crimson-bright)', fontWeight: 600 }}>
+                {hasAdminAccess ? 'Full permission authority' : `Under ${effectiveAdminDept} Scope`}
+              </div>
             </div>
           </div>
         </div>
@@ -616,7 +682,7 @@ export default function UserManagementSection({
           onClick={() => setUserCategory('all')}
         >
           <Users size={15} />
-          <span>All Accounts ({allUsersList.length})</span>
+          <span>{hasAdminAccess ? `All Accounts (${allUsersList.length})` : `All ${effectiveAdminDept} Members (${clusterTotalCount})`}</span>
         </button>
 
         <button
@@ -625,7 +691,7 @@ export default function UserManagementSection({
           onClick={() => setUserCategory('students')}
         >
           <GraduationCap size={15} />
-          <span>Students ({studentsFormatted.length})</span>
+          <span>{hasAdminAccess ? `Students (${studentsFormatted.length})` : `${effectiveAdminDept} Students (${clusterStudentsCount})`}</span>
         </button>
 
         <button
@@ -634,26 +700,30 @@ export default function UserManagementSection({
           onClick={() => setUserCategory('faculty')}
         >
           <BookOpen size={15} />
-          <span>Faculty ({facultyList.length})</span>
+          <span>{hasAdminAccess ? `Faculty (${facultyList.length})` : `${effectiveAdminDept} Faculty (${clusterFacultyCount})`}</span>
         </button>
 
-        <button
-          type="button"
-          className={`chair-tab-btn ${userCategory === 'chairs' ? 'active' : ''}`}
-          onClick={() => setUserCategory('chairs')}
-        >
-          <ShieldAlert size={15} />
-          <span>Program Chairs ({chairsList.length})</span>
-        </button>
+        {hasAdminAccess && (
+          <>
+            <button
+              type="button"
+              className={`chair-tab-btn ${userCategory === 'chairs' ? 'active' : ''}`}
+              onClick={() => setUserCategory('chairs')}
+            >
+              <ShieldAlert size={15} />
+              <span>Program Chairs ({chairsList.length})</span>
+            </button>
 
-        <button
-          type="button"
-          className={`chair-tab-btn ${userCategory === 'admins' ? 'active' : ''}`}
-          onClick={() => setUserCategory('admins')}
-        >
-          <ShieldCheck size={15} />
-          <span>Administrators ({adminsOnlyList.length})</span>
-        </button>
+            <button
+              type="button"
+              className={`chair-tab-btn ${userCategory === 'admins' ? 'active' : ''}`}
+              onClick={() => setUserCategory('admins')}
+            >
+              <ShieldCheck size={15} />
+              <span>Administrators ({adminsOnlyList.length})</span>
+            </button>
+          </>
+        )}
       </div>
 
       {/* Main Table Container Card */}
@@ -684,37 +754,57 @@ export default function UserManagementSection({
 
           {/* Cluster & Admin Filters */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.8rem', color: 'var(--text-muted)' }}>
-              <Filter size={13} />
-              <span>Cluster:</span>
-              <select
-                className="chair-status-select"
-                value={clusterFilter}
-                onChange={e => setClusterFilter(e.target.value)}
-                style={{ fontSize: '0.78rem', padding: '0.3rem 0.6rem' }}
-              >
-                <option value="ALL">All Clusters</option>
-                <option value="CS">CS (Computer Science)</option>
-                <option value="IT">IT (Information Technology)</option>
-                <option value="DS">DS (Data Science)</option>
-                <option value="EMC">EMC (Multimedia)</option>
-                <option value="IS">IS (Information Systems)</option>
-              </select>
-            </div>
+            {hasAdminAccess ? (
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+                <Filter size={13} />
+                <span>Cluster:</span>
+                <select
+                  className="chair-status-select"
+                  value={clusterFilter}
+                  onChange={e => setClusterFilter(e.target.value)}
+                  style={{ fontSize: '0.78rem', padding: '0.3rem 0.6rem' }}
+                >
+                  <option value="ALL">All Clusters</option>
+                  <option value="CS">CS (Computer Science)</option>
+                  <option value="IT">IT (Information Technology)</option>
+                  <option value="DS">DS (Data Science)</option>
+                  <option value="EMC">EMC (Multimedia)</option>
+                  <option value="IS">IS (Information Systems)</option>
+                </select>
+              </div>
+            ) : (
+              <div style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '0.4rem',
+                fontSize: '0.76rem',
+                fontWeight: 700,
+                padding: '0.3rem 0.75rem',
+                borderRadius: '999px',
+                background: 'rgba(185, 28, 28, 0.08)',
+                color: 'var(--crimson-bright)',
+                border: '1px solid rgba(185, 28, 28, 0.2)'
+              }}>
+                <Lock size={12} />
+                <span>Cluster: {effectiveAdminDept} (Your Department)</span>
+              </div>
+            )}
 
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.8rem', color: 'var(--text-muted)' }}>
-              <span>Admin Role:</span>
-              <select
-                className="chair-status-select"
-                value={adminStatusFilter}
-                onChange={e => setAdminStatusFilter(e.target.value)}
-                style={{ fontSize: '0.78rem', padding: '0.3rem 0.6rem' }}
-              >
-                <option value="ALL">All Roles</option>
-                <option value="ADMIN">Admin Only</option>
-                <option value="NON_ADMIN">Non-Admin</option>
-              </select>
-            </div>
+            {hasAdminAccess && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+                <span>Admin Role:</span>
+                <select
+                  className="chair-status-select"
+                  value={adminStatusFilter}
+                  onChange={e => setAdminStatusFilter(e.target.value)}
+                  style={{ fontSize: '0.78rem', padding: '0.3rem 0.6rem' }}
+                >
+                  <option value="ALL">All Roles</option>
+                  <option value="ADMIN">Admin Only</option>
+                  <option value="NON_ADMIN">Non-Admin</option>
+                </select>
+              </div>
+            )}
           </div>
         </div>
 
@@ -902,6 +992,17 @@ export default function UserManagementSection({
                             <Lock size={11} />
                             <span>Permanent Super Admin</span>
                           </span>
+                        ) : !hasAdminAccess ? (
+                          <span style={{ 
+                            fontSize: '0.72rem', 
+                            color: 'var(--text-muted)', 
+                            display: 'inline-flex', 
+                            alignItems: 'center', 
+                            gap: '0.3rem' 
+                          }}>
+                            <Lock size={11} />
+                            <span>Admin Only</span>
+                          </span>
                         ) : (
                           <button
                             type="button"
@@ -930,74 +1031,82 @@ export default function UserManagementSection({
                       {/* Management Actions: Edit, Reset Pass, Delete */}
                       <td>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                          <button
-                            type="button"
-                            onClick={() => setEditingUser(u)}
-                            style={{
-                              display: 'inline-flex',
-                              alignItems: 'center',
-                              gap: '0.25rem',
-                              padding: '0.3rem 0.6rem',
-                              fontSize: '0.72rem',
-                              fontWeight: 700,
-                              borderRadius: '6px',
-                              background: 'var(--bg-input)',
-                              color: 'var(--text-secondary)',
-                              border: '1px solid var(--border-hairline)',
-                              cursor: 'pointer'
-                            }}
-                            title="Edit account information"
-                          >
-                            <Edit3 size={12} />
-                            <span>Edit</span>
-                          </button>
+                          {(hasAdminAccess || (!u.isAdmin && !isSuper && !isLead)) ? (
+                            <>
+                              <button
+                                type="button"
+                                onClick={() => setEditingUser(u)}
+                                style={{
+                                  display: 'inline-flex',
+                                  alignItems: 'center',
+                                  gap: '0.25rem',
+                                  padding: '0.3rem 0.6rem',
+                                  fontSize: '0.72rem',
+                                  fontWeight: 700,
+                                  borderRadius: '6px',
+                                  background: 'var(--bg-input)',
+                                  color: 'var(--text-secondary)',
+                                  border: '1px solid var(--border-hairline)',
+                                  cursor: 'pointer'
+                                }}
+                                title="Edit account information"
+                              >
+                                <Edit3 size={12} />
+                                <span>Edit</span>
+                              </button>
 
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setPasswordResetUser(u);
-                              setNewPasswordVal('');
-                            }}
-                            style={{
-                              display: 'inline-flex',
-                              alignItems: 'center',
-                              gap: '0.25rem',
-                              padding: '0.3rem 0.6rem',
-                              fontSize: '0.72rem',
-                              fontWeight: 700,
-                              borderRadius: '6px',
-                              background: 'rgba(217, 119, 6, 0.1)',
-                              color: 'var(--gold-bright)',
-                              border: '1px solid rgba(217, 119, 6, 0.25)',
-                              cursor: 'pointer'
-                            }}
-                            title="Directly reset account password"
-                          >
-                            <KeyRound size={12} />
-                            <span>Password</span>
-                          </button>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setPasswordResetUser(u);
+                                  setNewPasswordVal('');
+                                }}
+                                style={{
+                                  display: 'inline-flex',
+                                  alignItems: 'center',
+                                  gap: '0.25rem',
+                                  padding: '0.3rem 0.6rem',
+                                  fontSize: '0.72rem',
+                                  fontWeight: 700,
+                                  borderRadius: '6px',
+                                  background: 'rgba(217, 119, 6, 0.1)',
+                                  color: 'var(--gold-bright)',
+                                  border: '1px solid rgba(217, 119, 6, 0.25)',
+                                  cursor: 'pointer'
+                                }}
+                                title="Directly reset account password"
+                              >
+                                <KeyRound size={12} />
+                                <span>Password</span>
+                              </button>
 
-                          {!isSuper && !isLead && (
-                            <button
-                              type="button"
-                              onClick={() => setDeletingUser(u)}
-                              style={{
-                                display: 'inline-flex',
-                                alignItems: 'center',
-                                gap: '0.25rem',
-                                padding: '0.3rem 0.5rem',
-                                fontSize: '0.72rem',
-                                fontWeight: 700,
-                                borderRadius: '6px',
-                                background: 'rgba(239, 68, 68, 0.08)',
-                                color: '#ef4444',
-                                border: '1px solid rgba(239, 68, 68, 0.25)',
-                                cursor: 'pointer'
-                              }}
-                              title="Delete or remove this account"
-                            >
-                              <Trash2 size={12} />
-                            </button>
+                              {!isSuper && !isLead && (!u.isAdmin || hasAdminAccess) && (
+                                <button
+                                  type="button"
+                                  onClick={() => setDeletingUser(u)}
+                                  style={{
+                                    display: 'inline-flex',
+                                    alignItems: 'center',
+                                    gap: '0.25rem',
+                                    padding: '0.3rem 0.5rem',
+                                    fontSize: '0.72rem',
+                                    fontWeight: 700,
+                                    borderRadius: '6px',
+                                    background: 'rgba(239, 68, 68, 0.08)',
+                                    color: '#ef4444',
+                                    border: '1px solid rgba(239, 68, 68, 0.25)',
+                                    cursor: 'pointer'
+                                  }}
+                                  title="Delete or remove this account"
+                                >
+                                  <Trash2 size={12} />
+                                </button>
+                              )}
+                            </>
+                          ) : (
+                            <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontStyle: 'italic', padding: '0.2rem 0.4rem' }}>
+                              Protected
+                            </span>
                           )}
                         </div>
                       </td>
@@ -1117,7 +1226,7 @@ export default function UserManagementSection({
                       })}
                       style={{ fontWeight: 700 }}
                     >
-                      {SOIT_PROGRAMS.map(prog => (
+                      {(hasAdminAccess ? SOIT_PROGRAMS : getProgramsForCluster(effectiveAdminDept)).map(prog => (
                         <option key={prog.code} value={prog.code}>
                           {prog.code} — {prog.name}
                         </option>
@@ -1145,13 +1254,13 @@ export default function UserManagementSection({
                     <label className="field-label">Assigned Cluster / Department</label>
                     <select
                       className="custom-input"
-                      value={editingUser.data?.dept || editingUser.dept || 'CS'}
+                      value={editingUser.data?.dept || editingUser.dept || effectiveAdminDept}
                       onChange={e => setEditingUser({
                         ...editingUser,
                         data: { ...(editingUser.data || editingUser), dept: e.target.value }
                       })}
-                      disabled={isLeadProgramChair(editingUser.email)}
-                      style={{ fontWeight: 700 }}
+                      disabled={!hasAdminAccess || isLeadProgramChair(editingUser.email)}
+                      style={{ fontWeight: 700, opacity: (!hasAdminAccess || isLeadProgramChair(editingUser.email)) ? 0.75 : 1 }}
                     >
                       <option value="CS">CS — Computer Science</option>
                       <option value="IT">IT — Information Technology</option>
@@ -1364,7 +1473,7 @@ export default function UserManagementSection({
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--crimson-bright)' }}>
                 <UserPlus size={18} />
                 <h3 style={{ margin: 0, fontSize: '1.15rem', fontWeight: 800, color: 'var(--text-pure)' }}>
-                  Provision New User Account
+                  {hasAdminAccess ? 'Provision New User Account' : `Provision ${effectiveAdminDept} Cluster Member`}
                 </h3>
               </div>
               <button
@@ -1394,7 +1503,7 @@ export default function UserManagementSection({
                   color: addUserTab === 'faculty' ? '#ffffff' : 'var(--text-secondary)'
                 }}
               >
-                Authorize Faculty / Admin
+                {hasAdminAccess ? 'Authorize Faculty / Admin' : `Authorize ${effectiveAdminDept} Faculty`}
               </button>
               <button
                 type="button"
@@ -1445,9 +1554,10 @@ export default function UserManagementSection({
                     <label className="field-label">Assigned Cluster <span className="required-dot">*</span></label>
                     <select
                       className="custom-input"
-                      value={newFacultyCluster}
+                      value={hasAdminAccess ? newFacultyCluster : effectiveAdminDept}
                       onChange={e => setNewFacultyCluster(e.target.value)}
-                      style={{ fontWeight: 700 }}
+                      disabled={!hasAdminAccess}
+                      style={{ fontWeight: 700, opacity: !hasAdminAccess ? 0.8 : 1 }}
                     >
                       <option value="CS">CS (Computer Science)</option>
                       <option value="IT">IT (Information Technology)</option>
@@ -1459,15 +1569,17 @@ export default function UserManagementSection({
                 </div>
 
                 {/* Grant Admin immediately checkbox */}
-                <label style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', fontSize: '0.82rem', fontWeight: 700, color: 'var(--text-pure)', cursor: 'pointer', background: 'rgba(217, 119, 6, 0.08)', padding: '0.65rem 0.85rem', borderRadius: '8px', border: '1px solid rgba(217, 119, 6, 0.25)' }}>
-                  <input
-                    type="checkbox"
-                    checked={newFacultyGrantAdmin}
-                    onChange={e => setNewFacultyGrantAdmin(e.target.checked)}
-                    style={{ accentColor: 'var(--crimson-core)' }}
-                  />
-                  <span>Grant Administrator Privileges immediately</span>
-                </label>
+                {hasAdminAccess && (
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', fontSize: '0.82rem', fontWeight: 700, color: 'var(--text-pure)', cursor: 'pointer', background: 'rgba(217, 119, 6, 0.08)', padding: '0.65rem 0.85rem', borderRadius: '8px', border: '1px solid rgba(217, 119, 6, 0.25)' }}>
+                    <input
+                      type="checkbox"
+                      checked={newFacultyGrantAdmin}
+                      onChange={e => setNewFacultyGrantAdmin(e.target.checked)}
+                      style={{ accentColor: 'var(--crimson-core)' }}
+                    />
+                    <span>Grant Administrator Privileges immediately</span>
+                  </label>
+                )}
 
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '0.75rem', marginTop: '0.5rem' }}>
                   <button
@@ -1483,7 +1595,7 @@ export default function UserManagementSection({
                     className="tactile-btn-primary"
                     style={{ padding: '0.65rem 1.4rem' }}
                   >
-                    Authorize Faculty
+                    Authorize {hasAdminAccess ? newFacultyCluster : effectiveAdminDept} Faculty
                   </button>
                 </div>
               </form>
@@ -1562,7 +1674,7 @@ export default function UserManagementSection({
                       onChange={e => setNewStudentData({ ...newStudentData, program: e.target.value })}
                       style={{ fontWeight: 700 }}
                     >
-                      {SOIT_PROGRAMS.map(prog => (
+                      {(hasAdminAccess ? SOIT_PROGRAMS : getProgramsForCluster(effectiveAdminDept)).map(prog => (
                         <option key={prog.code} value={prog.code}>
                           {prog.code} — {prog.name}
                         </option>

@@ -226,6 +226,18 @@ export function addAdminEmail(newEmail, assignedDept = 'CS', facultyName = '', a
     ? String(assignedDept).toUpperCase()
     : 'CS';
 
+  // Safeguard: Program Chairs without admin access can only authorize faculty under their own cluster
+  if (authorizedBy) {
+    const actorNorm = normalizeEmail(authorizedBy);
+    if (!hasAdminPrivilege(actorNorm) && actorNorm !== SUPER_ADMIN_EMAIL) {
+      const actorConsultations = getLocalConsultations();
+      const actorDept = String(FIXED_ADMIN_DEPARTMENTS[actorNorm] || actorConsultations[actorNorm]?.dept || 'CS').toUpperCase();
+      if (cleanDept !== actorDept) {
+        return { success: false, error: `Program Chairs can only authorize faculty under their assigned cluster (${actorDept}).` };
+      }
+    }
+  }
+
   const cleanName = String(facultyName || '').trim() || norm.split('@')[0];
   const profile = {
     email: norm,
@@ -768,10 +780,11 @@ export async function revokeAdminPrivilege(targetEmail, actorEmail) {
 
 export async function adminDirectResetFacultyPassword(targetEmail, newPassword, actorEmail) {
   const actorNorm = normalizeEmail(actorEmail);
-  if (!hasAdminPrivilege(actorNorm)) {
-    return { success: false, error: 'Unauthorized: Only an active administrator can reset user passwords.' };
-  }
   const targetNorm = normalizeEmail(targetEmail);
+  const canManage = isSuperAdmin(actorNorm) || hasAdminPrivilege(actorNorm) || canManageClusterMember(actorNorm, targetNorm);
+  if (!canManage) {
+    return { success: false, error: 'Unauthorized: You can only reset passwords for users within your assigned cluster.' };
+  }
   const cleanPass = String(newPassword || '').trim();
   if (!cleanPass || cleanPass.length < 4) {
     return { success: false, error: 'Password must be at least 4 characters long.' };
@@ -801,10 +814,11 @@ export async function adminDirectResetFacultyPassword(targetEmail, newPassword, 
 
 export async function adminUpdateFacultyUser(targetEmail, updates, actorEmail) {
   const actorNorm = normalizeEmail(actorEmail);
-  if (!hasAdminPrivilege(actorNorm)) {
-    return { success: false, error: 'Unauthorized: Only an active administrator can edit user details.' };
-  }
   const targetNorm = normalizeEmail(targetEmail);
+  const canManage = isSuperAdmin(actorNorm) || hasAdminPrivilege(actorNorm) || canManageClusterMember(actorNorm, targetNorm);
+  if (!canManage) {
+    return { success: false, error: 'Unauthorized: You can only edit users within your assigned cluster.' };
+  }
   const currentMap = getLocalConsultations();
   const existing = getConsultationProfileForEmail(targetNorm, currentMap);
 
@@ -830,10 +844,11 @@ export async function adminUpdateFacultyUser(targetEmail, updates, actorEmail) {
 
 export async function adminRemoveFacultyUser(targetEmail, actorEmail) {
   const actorNorm = normalizeEmail(actorEmail);
-  if (!hasAdminPrivilege(actorNorm)) {
-    return { success: false, error: 'Unauthorized: Only an active administrator can remove user accounts.' };
-  }
   const targetNorm = normalizeEmail(targetEmail);
+  const canManage = isSuperAdmin(actorNorm) || hasAdminPrivilege(actorNorm) || canManageClusterMember(actorNorm, targetNorm);
+  if (!canManage) {
+    return { success: false, error: 'Unauthorized: You can only remove users within your assigned cluster.' };
+  }
   if (isSuperAdmin(targetNorm)) {
     return { success: false, error: 'The Super Administrator account cannot be removed.' };
   }

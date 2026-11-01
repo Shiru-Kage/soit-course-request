@@ -64,3 +64,25 @@ export const SOIT_PROGRAMS = [
     desc: 'Threat intelligence, ethical hacking, digital forensics, network defense, and cryptography.'
   }
 ];
+
+export const PROGRAM_TO_CLUSTER_MAP = {
+  CS: 'CS',
+  BMCS: 'CS',
+  IT: 'IT',
+  CYB: 'IT',
+  DS: 'DS',
+  EMC: 'EMC',
+  IS: 'IS',
+  BMIT: 'IS',
+  ISMAN: 'IS'
+};
+
+export function getClusterForProgram(progCode) {
+  const code = String(progCode || '').trim().toUpperCase();
+  return PROGRAM_TO_CLUSTER_MAP[code] || 'CS';
+}
+
+export function getProgramsForCluster(clusterDept) {
+  const dept = String(clusterDept || '').trim().toUpperCase();
+  return SOIT_PROGRAMS.filter(p => getClusterForProgram(p.code) === dept);
+}
