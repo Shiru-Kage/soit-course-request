@@ -1519,8 +1519,8 @@ html, body {
   display: inline-block !important;
 }
 
-/* Breakpoint: <= 1260px collapses desktop dock into mobile hamburger */
-@media (max-width: 1260px) {
+/* Breakpoint: <= 1280px collapses desktop dock into mobile hamburger */
+@media (max-width: 1280px) {
   .navbar-nav {
     display: none !important;
   }
@@ -1529,8 +1529,8 @@ html, body {
   }
 }
 
-/* Breakpoint: >= 1261px shows desktop horizontal dock */
-@media (min-width: 1261px) {
+/* Breakpoint: >= 1281px shows desktop horizontal dock */
+@media (min-width: 1281px) {
   .navbar-mobile-toggle {
     display: none !important;
   }
@@ -1625,52 +1625,64 @@ html, body {
   box-shadow: 0 4px 14px var(--crimson-glow);
 }
 
-/* Symmetrical Chair Tab Bar (No orphaned 6th tab!) */
+/* Responsive Chair Tab Bar (Zero Overlap, Smooth Auto-Fit) */
 .chair-tab-bar {
   display: flex !important;
-  flex-wrap: wrap !important;
-  gap: 0.45rem !important;
-  padding: 0.4rem !important;
+  flex-wrap: nowrap !important;
+  align-items: center !important;
+  gap: 0.35rem !important;
+  padding: 0.35rem 0.45rem !important;
   background: var(--bg-card) !important;
   border: 1px solid var(--border-hairline) !important;
   border-radius: var(--radius-lg) !important;
   width: 100% !important;
   box-sizing: border-box !important;
+  overflow-x: auto !important;
+  scrollbar-width: none !important;
+  -webkit-overflow-scrolling: touch !important;
+}
+
+.chair-tab-bar::-webkit-scrollbar {
+  display: none !important;
 }
 
 .chair-tab-btn {
-  flex: 1 1 calc(16.666% - 0.45rem) !important;
-  min-width: 150px !important;
+  flex: 1 0 auto !important;
+  min-width: max-content !important;
   display: inline-flex !important;
   align-items: center !important;
   justify-content: center !important;
   text-align: center !important;
-  gap: 0.4rem !important;
-  padding: 0.6rem 0.85rem !important;
+  gap: 0.45rem !important;
+  padding: 0.58rem 0.95rem !important;
   border-radius: var(--radius-md) !important;
   font-size: 0.81rem !important;
   font-weight: 700 !important;
   white-space: nowrap !important;
   box-sizing: border-box !important;
+  cursor: pointer !important;
+  position: relative !important;
   transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+.chair-tab-btn span {
+  white-space: nowrap !important;
+  display: inline-block !important;
+}
+
+.chair-tab-btn.active {
+  z-index: 2 !important;
 }
 
 @media (max-width: 900px) {
   .chair-tab-bar {
-    overflow-x: auto !important;
-    flex-wrap: nowrap !important;
-    -webkit-overflow-scrolling: touch !important;
-    scrollbar-width: none !important;
-    padding: 0.35rem !important;
-  }
-  .chair-tab-bar::-webkit-scrollbar {
-    display: none !important;
+    padding: 0.3rem 0.35rem !important;
+    gap: 0.3rem !important;
   }
   .chair-tab-btn {
-    flex-shrink: 0 !important;
-    min-width: auto !important;
-    padding: 0.55rem 0.85rem !important;
+    padding: 0.52rem 0.8rem !important;
     font-size: 0.78rem !important;
+    gap: 0.35rem !important;
   }
 }
 

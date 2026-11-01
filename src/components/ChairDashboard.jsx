@@ -816,7 +816,7 @@ export default function ChairDashboard({
           >
             <ShieldCheck size={15} />
             <span>
-              {hasAdminAccess ? '5. User & Admin Management' : `5. ${effectiveAdminDept} Cluster & Faculty Management`}
+              {hasAdminAccess ? '5. User & Admin Management' : `5. ${effectiveAdminDept} Cluster & Faculty`}
             </span>
           </button>
 
