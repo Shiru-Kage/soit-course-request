@@ -665,3 +665,187 @@ export async function saveAdminConsultationProfile(email, profileUpdates) {
 
   return nextMap;
 }
+
+
+export const STORAGE_ADMIN_ROLES_KEY = 'soit_admin_roles_v1';
+
+// Super Admin is always the primary administrator
+export function getAdminRoleEmails() {
+  try {
+    const raw = localStorage.getItem(STORAGE_ADMIN_ROLES_KEY);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        return Array.from(new Set([SUPER_ADMIN_EMAIL, ...parsed.map(normalizeEmail)]));
+      }
+    }
+  } catch (e) {}
+  return [SUPER_ADMIN_EMAIL];
+}
+
+export async function saveAdminRoleEmails(emails) {
+  const clean = Array.from(new Set([SUPER_ADMIN_EMAIL, ...emails.map(normalizeEmail).filter(Boolean)]));
+  try {
+    localStorage.setItem(STORAGE_ADMIN_ROLES_KEY, JSON.stringify(clean));
+  } catch (e) {}
+
+  // Synchronize to Cloud Firestore
+  try {
+    const db = getFirebaseDb();
+    if (db) {
+      await setDoc(doc(db, 'settings', 'admin_roles'), {
+        adminEmails: clean,
+        lastUpdated: new Date().toISOString()
+      }, { merge: true });
+    }
+  } catch (e) {
+    console.warn('Could not sync admin roles to Cloud Firestore:', e);
+  }
+  return clean;
+}
+
+export async function fetchAdminRolesFromCloud() {
+  const local = getAdminRoleEmails();
+  try {
+    const db = getFirebaseDb();
+    if (db) {
+      const snap = await getDoc(doc(db, 'settings', 'admin_roles'));
+      if (snap.exists()) {
+        const data = snap.data();
+        if (data && Array.isArray(data.adminEmails)) {
+          const merged = Array.from(new Set([SUPER_ADMIN_EMAIL, ...local, ...data.adminEmails.map(normalizeEmail)]));
+          try {
+            localStorage.setItem(STORAGE_ADMIN_ROLES_KEY, JSON.stringify(merged));
+          } catch (e) {}
+          return merged;
+        }
+      }
+    }
+  } catch (e) {}
+  return local;
+}
+
+export function hasAdminPrivilege(email, customList = null) {
+  const norm = normalizeEmail(email);
+  if (!norm) return false;
+  if (isSuperAdmin(norm)) return true;
+  const list = customList || getAdminRoleEmails();
+  return list.map(normalizeEmail).includes(norm);
+}
+
+export async function grantAdminPrivilege(targetEmail, actorEmail) {
+  const actorNorm = normalizeEmail(actorEmail);
+  if (!hasAdminPrivilege(actorNorm)) {
+    return { success: false, error: 'Unauthorized: Only an active administrator can grant admin privileges.' };
+  }
+  const targetNorm = normalizeEmail(targetEmail);
+  if (!targetNorm) {
+    return { success: false, error: 'Target email is required.' };
+  }
+  const current = getAdminRoleEmails();
+  if (current.includes(targetNorm)) {
+    return { success: true, adminEmails: current, message: "Account " + targetEmail + " already has Administrator privileges." };
+  }
+  const updated = [...current, targetNorm];
+  const saved = await saveAdminRoleEmails(updated);
+  return { success: true, adminEmails: saved, message: "Granted Administrator privileges to " + targetEmail + "." };
+}
+
+export async function revokeAdminPrivilege(targetEmail, actorEmail) {
+  const actorNorm = normalizeEmail(actorEmail);
+  if (!hasAdminPrivilege(actorNorm)) {
+    return { success: false, error: 'Unauthorized: Only an active administrator can revoke admin privileges.' };
+  }
+  const targetNorm = normalizeEmail(targetEmail);
+  if (isSuperAdmin(targetNorm)) {
+    return { success: false, error: 'The Primary Super Administrator account (imppcabalag@gmail.com) cannot be revoked.' };
+  }
+  const current = getAdminRoleEmails();
+  const updated = current.filter(e => e !== targetNorm);
+  const saved = await saveAdminRoleEmails(updated);
+  return { success: true, adminEmails: saved, message: "Revoked Administrator privileges from " + targetEmail + "." };
+}
+
+export async function adminDirectResetFacultyPassword(targetEmail, newPassword, actorEmail) {
+  const actorNorm = normalizeEmail(actorEmail);
+  if (!hasAdminPrivilege(actorNorm)) {
+    return { success: false, error: 'Unauthorized: Only an active administrator can reset user passwords.' };
+  }
+  const targetNorm = normalizeEmail(targetEmail);
+  const cleanPass = String(newPassword || '').trim();
+  if (!cleanPass || cleanPass.length < 4) {
+    return { success: false, error: 'Password must be at least 4 characters long.' };
+  }
+
+  saveStoredPassword(targetNorm, cleanPass);
+  try {
+    const db = getFirebaseDb();
+    if (db) {
+      const passRef = doc(db, 'settings', 'chair_auth');
+      const snap = await getDoc(passRef);
+      const existingData = snap.exists() ? snap.data() : { passwords: {} };
+      const updatedPasswords = {
+        ...(existingData.passwords || {}),
+        [targetNorm]: cleanPass
+      };
+      await setDoc(passRef, {
+        passwords: updatedPasswords,
+        lastUpdated: new Date().toISOString(),
+        updatedBy: actorNorm
+      }, { merge: true });
+    }
+  } catch (err) {}
+
+  return { success: true, message: "Password for " + targetEmail + " updated successfully." };
+}
+
+export async function adminUpdateFacultyUser(targetEmail, updates, actorEmail) {
+  const actorNorm = normalizeEmail(actorEmail);
+  if (!hasAdminPrivilege(actorNorm)) {
+    return { success: false, error: 'Unauthorized: Only an active administrator can edit user details.' };
+  }
+  const targetNorm = normalizeEmail(targetEmail);
+  const currentMap = getLocalConsultations();
+  const existing = getConsultationProfileForEmail(targetNorm, currentMap);
+
+  const cleanDept = ['CS', 'IT', 'DS', 'EMC', 'IS'].includes(String(updates?.dept || '').toUpperCase())
+    ? String(updates.dept).toUpperCase()
+    : existing.dept;
+
+  const nextProfile = {
+    ...existing,
+    name: updates?.name !== undefined && String(updates.name).trim() ? String(updates.name).trim() : existing.name,
+    dept: FIXED_ADMIN_DEPARTMENTS[targetNorm] || cleanDept,
+    programTitle: CLUSTER_PROGRAM_LABELS[FIXED_ADMIN_DEPARTMENTS[targetNorm] || cleanDept] || (cleanDept + ' Cluster')
+  };
+
+  const updatedConsultations = await saveAdminConsultationProfile(targetNorm, nextProfile);
+  return {
+    success: true,
+    consultations: updatedConsultations,
+    profile: nextProfile,
+    message: "Updated profile details for " + (existing.displayEmail || targetNorm) + "."
+  };
+}
+
+export async function adminRemoveFacultyUser(targetEmail, actorEmail) {
+  const actorNorm = normalizeEmail(actorEmail);
+  if (!hasAdminPrivilege(actorNorm)) {
+    return { success: false, error: 'Unauthorized: Only an active administrator can remove user accounts.' };
+  }
+  const targetNorm = normalizeEmail(targetEmail);
+  if (isSuperAdmin(targetNorm)) {
+    return { success: false, error: 'The Super Administrator account cannot be removed.' };
+  }
+  if (isLeadProgramChair(targetNorm)) {
+    return { success: false, error: 'Lead Program Chairs are permanent department heads and cannot be deleted.' };
+  }
+
+  // Remove from admin roles if present
+  const adminRoles = getAdminRoleEmails().filter(e => e !== targetNorm);
+  await saveAdminRoleEmails(adminRoles);
+
+  // Remove from allowed admin emails
+  const res = removeAdminEmail(targetNorm);
+  return res;
+}

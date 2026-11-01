@@ -1,5 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import KineticCounter from './KineticCounter';
+import UserManagementSection from './UserManagementSection';
 import { 
   ShieldCheck, 
   Users, 
@@ -139,6 +140,22 @@ export default function ChairDashboard({
 
   // Logged-in Administrator's Personal Consultation Settings & Role Scope
   const activeAdminEmail = currentUser?.email || 'imppcabalag@gmail.com';
+  const [adminRoleEmails, setAdminRoleEmails] = useState(() => getAdminRoleEmails());
+  const hasAdminAccess = hasAdminPrivilege(activeAdminEmail, adminRoleEmails);
+
+  useEffect(() => {
+    fetchAdminRolesFromCloud().then(roles => {
+      if (Array.isArray(roles)) {
+        setAdminRoleEmails(roles);
+      }
+    });
+  }, [activeAdminEmail]);
+
+  useEffect(() => {
+    if (!hasAdminAccess && activeTab === 'admins') {
+      setActiveTab('courses');
+    }
+  }, [hasAdminAccess, activeTab]);
   const hasSuperAdminAccess = isSuperAdmin(activeAdminEmail);
   const myInitialProfile = useMemo(
     () => getConsultationProfileForEmail(activeAdminEmail, consultations),
@@ -1508,480 +1525,24 @@ export default function ChairDashboard({
       )}
     
       {/* TAB 5: CLUSTER & ADMIN MANAGEMENT */}
-      {activeTab === 'admins' && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-          {/* Top Session Banner */}
-          <div 
-            className="dossier-card" 
-            style={{ 
-              display: 'flex', 
-              alignItems: 'center', 
-              justifyContent: 'space-between', 
-              flexWrap: 'wrap', 
-              gap: '1.25rem', 
-              padding: '1.4rem 1.75rem',
-              background: 'linear-gradient(135deg, rgba(185, 28, 28, 0.08) 0%, rgba(245, 158, 11, 0.06) 100%)', 
-              borderColor: 'rgba(185, 28, 28, 0.25)' 
-            }}
-          >
-            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-              <div style={{ 
-                width: 46, 
-                height: 46, 
-                borderRadius: '12px', 
-                backgroundColor: 'rgba(185, 28, 28, 0.12)', 
-                display: 'flex', 
-                alignItems: 'center', 
-                justifyContent: 'center', 
-                color: 'var(--crimson-bright)',
-                border: '1px solid rgba(185, 28, 28, 0.25)'
-              }}>
-                <ShieldCheck size={24} />
-              </div>
-              <div>
-                <div style={{ fontSize: '0.72rem', fontWeight: 800, color: 'var(--crimson-bright)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                  Active Administrator Session • {myInitialProfile.name} ({effectiveAdminDept} Cluster)
-                </div>
-                <div style={{ fontSize: '1.15rem', fontWeight: 800, color: 'var(--text-pure)' }}>
-                  {activeAdminEmail}
-                </div>
-                <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
-                  {hasSuperAdminAccess
-                    ? 'SOIT General Administration • Full Authority Across All Clusters (CS, IT, DS, EMC, IS)'
-                    : `${CLUSTER_PROGRAM_LABELS[effectiveAdminDept] || effectiveAdminDept} Cluster Lead • Authorize & Manage ${effectiveAdminDept} Cluster Faculty`}
-                </div>
-              </div>
-            </div>
-
-            {onLogout && (
-              <button
-                type="button"
-                className="btn-secondary-ghost"
-                onClick={onLogout}
-                style={{ 
-                  borderColor: 'rgba(239, 68, 68, 0.35)', 
-                  color: '#ef4444',
-                  padding: '0.65rem 1.15rem',
-                  fontSize: '0.82rem',
-                  fontWeight: 700
-                }}
-              >
-                <LogOut size={15} />
-                <span>Sign Out of Admin</span>
-              </button>
-            )}
-          </div>
-
-          {adminActionMsg.text && (
-            <div style={{
-              padding: '0.85rem 1.15rem',
-              borderRadius: 'var(--radius-md)',
-              fontSize: '0.85rem',
-              fontWeight: 700,
-              backgroundColor: adminActionMsg.type === 'success' ? 'rgba(16, 185, 129, 0.12)' : 'rgba(239, 68, 68, 0.12)',
-              color: adminActionMsg.type === 'success' ? 'var(--emerald-core)' : '#ef4444',
-              border: `1px solid ${adminActionMsg.type === 'success' ? 'var(--emerald-border)' : 'rgba(239, 68, 68, 0.3)'}`,
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.55rem'
-            }}>
-              <CheckCircle2 size={16} />
-              <span>{adminActionMsg.text}</span>
-            </div>
-          )}
-
-          {/* Top 2-Column Grid: Authorize New Email with Cluster + Change Password */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(360px, 1fr))', gap: '1.5rem' }}>
-            {/* Card A: Authorize New Faculty Email & Assign Cluster / Program */}
-            <div className="dossier-card" style={{ display: 'flex', flexDirection: 'column', gap: '1.15rem', padding: '1.75rem' }}>
-              <div style={{ borderBottom: '1px solid var(--border-hairline)', paddingBottom: '0.9rem' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.55rem', color: 'var(--crimson-bright)' }}>
-                  <UserPlus size={19} />
-                  <h3 style={{ fontSize: '1.1rem', fontWeight: 800, margin: 0, color: 'var(--text-pure)' }}>
-                    Authorize Faculty Email & Assign Cluster
-                  </h3>
-                </div>
-                <p style={{ fontSize: '0.82rem', color: 'var(--text-muted)', marginTop: '0.3rem', marginBottom: 0 }}>
-                  Authorize a faculty member's email and select which <strong>Program / Cluster (CS, IT, DS, EMC, IS)</strong> they will operate under.
-                </p>
-              </div>
-
-              <form onSubmit={handleAddAdmin} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                <div className="input-field-group" style={{ marginBottom: 0 }}>
-                  <label className="field-label">
-                    Faculty / Administrator Email <span className="required-dot">*</span>
-                  </label>
-                  <input
-                    type="email"
-                    className="custom-input"
-                    placeholder="e.g. faculty@mapua.edu.ph"
-                    value={newAdminEmail}
-                    onChange={e => setNewAdminEmail(e.target.value)}
-                    required
-                  />
-                </div>
-
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '0.85rem' }}>
-                  <div className="input-field-group" style={{ marginBottom: 0 }}>
-                    <label className="field-label">
-                      Faculty Name / Title
-                    </label>
-                    <input
-                      type="text"
-                      className="custom-input"
-                      placeholder="e.g. Prof. Dela Cruz"
-                      value={newAdminName}
-                      onChange={e => setNewAdminName(e.target.value)}
-                    />
-                  </div>
-
-                  <div className="input-field-group" style={{ marginBottom: 0 }}>
-                    <label className="field-label">
-                      Assigned Cluster / Program <span className="required-dot">*</span>
-                    </label>
-                    <select
-                      className="custom-input"
-                      value={newAdminCluster}
-                      onChange={e => setNewAdminCluster(e.target.value)}
-                      style={{ fontWeight: 700 }}
-                      aria-label="Assign Cluster or Program"
-                    >
-                      <option value="CS">CS — Computer Science Cluster</option>
-                      <option value="IT">IT — Information Technology Cluster</option>
-                      <option value="DS">DS — Data Science Cluster</option>
-                      <option value="EMC">EMC — Entertainment & Multimedia Cluster</option>
-                      <option value="IS">IS — Information Systems Cluster</option>
-                    </select>
-                  </div>
-                </div>
-
-                <button 
-                  type="submit" 
-                  className="tactile-btn-primary" 
-                  style={{ padding: '0.85rem 1.25rem', marginTop: '0.2rem' }}
-                >
-                  <UserPlus size={15} />
-                  <span>Authorize Email Under {newAdminCluster} Cluster</span>
-                </button>
-
-                <div style={{ 
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '0.45rem',
-                  background: 'var(--bg-input)', 
-                  border: '1px solid var(--border-hairline)', 
-                  borderRadius: 'var(--radius-sm)', 
-                  padding: '0.6rem 0.8rem',
-                  fontSize: '0.75rem', 
-                  color: 'var(--text-muted)' 
-                }}>
-                  <Info size={14} style={{ color: '#d97706', flexShrink: 0 }} />
-                  <span>Authorized faculty start with temporary password <strong>1234</strong> and can only manage courses under their assigned cluster (<strong>{newAdminCluster}</strong>).</span>
-                </div>
-              </form>
-            </div>
-
-            {/* Card B: Password Reset & Security Management */}
-            <div className="dossier-card" style={{ display: 'flex', flexDirection: 'column', gap: '1.15rem', padding: '1.75rem' }}>
-              <div style={{ borderBottom: '1px solid var(--border-hairline)', paddingBottom: '0.9rem' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.55rem', color: '#d97706' }}>
-                  <Lock size={19} />
-                  <h3 style={{ fontSize: '1.1rem', fontWeight: 800, margin: 0, color: 'var(--text-pure)' }}>
-                    Change Admin Password
-                  </h3>
-                </div>
-                <p style={{ fontSize: '0.82rem', color: 'var(--text-muted)', marginTop: '0.3rem', marginBottom: 0 }}>
-                  Update the password for your active administrator account ({activeAdminEmail}).
-                </p>
-              </div>
-
-              {pwdMsg.text && (
-                <div style={{
-                  padding: '0.8rem 1rem',
-                  borderRadius: 'var(--radius-md)',
-                  fontSize: '0.82rem',
-                  backgroundColor: pwdMsg.type === 'success' ? 'rgba(16, 185, 129, 0.12)' : 'rgba(239, 68, 68, 0.12)',
-                  color: pwdMsg.type === 'success' ? 'var(--emerald-core)' : '#ef4444',
-                  border: `1px solid ${pwdMsg.type === 'success' ? 'var(--emerald-border)' : 'rgba(239, 68, 68, 0.3)'}`
-                }}>
-                  {pwdMsg.text}
-                </div>
-              )}
-
-              <form onSubmit={handleChangePassword} style={{ display: 'flex', flexDirection: 'column', gap: '0.9rem' }}>
-                <div className="input-field-group" style={{ marginBottom: 0 }}>
-                  <label className="field-label">Current Password</label>
-                  <input
-                    type="password"
-                    className="custom-input"
-                    placeholder="Enter current password"
-                    value={currentPwd}
-                    onChange={e => setCurrentPwd(e.target.value)}
-                    required
-                  />
-                </div>
-
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: '0.85rem' }}>
-                  <div className="input-field-group" style={{ marginBottom: 0 }}>
-                    <label className="field-label">New Password</label>
-                    <input
-                      type="password"
-                      className="custom-input"
-                      placeholder="Min 4 chars"
-                      value={newPwd}
-                      onChange={e => setNewPwd(e.target.value)}
-                      required
-                      minLength={4}
-                    />
-                  </div>
-
-                  <div className="input-field-group" style={{ marginBottom: 0 }}>
-                    <label className="field-label">Confirm Password</label>
-                    <input
-                      type="password"
-                      className="custom-input"
-                      placeholder="Re-enter password"
-                      value={confirmPwd}
-                      onChange={e => setConfirmPwd(e.target.value)}
-                      required
-                      minLength={4}
-                    />
-                  </div>
-                </div>
-
-                <button 
-                  type="submit" 
-                  className="tactile-btn-primary" 
-                  style={{ marginTop: '0.25rem', padding: '0.85rem 1.5rem' }}
-                >
-                  <KeyRound size={15} />
-                  <span>Update Admin Password</span>
-                </button>
-              </form>
-            </div>
-          </div>
-
-          {/* Dedicated Section: Manage Faculty & Administrators Under Cluster */}
-          <div className="dossier-card" style={{ padding: '1.75rem', display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
-            <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', flexWrap: 'wrap', gap: '1rem', borderBottom: '1px solid var(--border-hairline)', paddingBottom: '1rem' }}>
-              <div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.55rem' }}>
-                  <Users size={19} style={{ color: 'var(--crimson-bright)' }} />
-                  <h3 style={{ fontSize: '1.15rem', fontWeight: 800, margin: 0, color: 'var(--text-pure)' }}>
-                    {hasSuperAdminAccess
-                      ? 'Cluster & Program Faculty Management (All SOIT Clusters)'
-                      : `Manage My Cluster Faculty (${effectiveAdminDept} — ${CLUSTER_PROGRAM_LABELS[effectiveAdminDept] || effectiveAdminDept})`}
-                  </h3>
-                </div>
-                <p style={{ fontSize: '0.82rem', color: 'var(--text-muted)', marginTop: '0.25rem', marginBottom: 0 }}>
-                  {hasSuperAdminAccess
-                    ? 'View, reassign clusters, or remove faculty members across all SOIT academic clusters (CS, IT, DS, EMC, IS).'
-                    : `View and manage all faculty members assigned under your ${effectiveAdminDept} cluster. You can reassign or remove faculty members belonging to your ${effectiveAdminDept} cluster.`}
-                </p>
-              </div>
-
-              {/* Cluster Filter Pills */}
-              <div className="dept-chip-rack">
-                {!hasSuperAdminAccess && (
-                  <button
-                    type="button"
-                    className={`dept-chip ${selectedClusterView === effectiveAdminDept ? 'active' : ''}`}
-                    onClick={() => setSelectedClusterView(effectiveAdminDept)}
-                  >
-                    My Cluster: {effectiveAdminDept} ({
-                      adminEmails.filter(e => {
-                        const p = getConsultationProfileForEmail(e, consultations);
-                        return p.dept === effectiveAdminDept;
-                      }).length
-                    })
-                  </button>
-                )}
-                <button
-                  type="button"
-                  className={`dept-chip ${selectedClusterView === 'ALL' ? 'active' : ''}`}
-                  onClick={() => setSelectedClusterView('ALL')}
-                >
-                  All Clusters ({adminEmails.length})
-                </button>
-                {['CS', 'IT', 'DS', 'EMC', 'IS'].map(cId => {
-                  const cnt = adminEmails.filter(e => {
-                    const p = getConsultationProfileForEmail(e, consultations);
-                    return p.dept === cId;
-                  }).length;
-                  return (
-                    <button
-                      key={cId}
-                      type="button"
-                      className={`dept-chip ${selectedClusterView === cId ? 'active' : ''}`}
-                      onClick={() => setSelectedClusterView(cId)}
-                    >
-                      {cId} ({cnt})
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-
-            {/* Cluster Members Table */}
-            <div className="table-responsive">
-              <table className="data-table">
-                <thead>
-                  <tr>
-                    <th>Faculty / Administrator</th>
-                    <th>Authorized Email</th>
-                    <th>Assigned Cluster / Program</th>
-                    <th>Cluster Role</th>
-                    <th>Slots</th>
-                    <th>Manage Action</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {adminEmails
-                    .map(email => {
-                      const prof = getConsultationProfileForEmail(email, consultations);
-                      return { email, prof };
-                    })
-                    .filter(({ prof }) => {
-                      if (selectedClusterView === 'ALL') return true;
-                      if (selectedClusterView === 'MY_CLUSTER') {
-                        return hasSuperAdminAccess ? true : prof.dept === effectiveAdminDept;
-                      }
-                      return prof.dept === selectedClusterView;
-                    })
-                    .map(({ email, prof }) => {
-                      const isCurrent = activeAdminEmail.toLowerCase() === email.toLowerCase();
-                      const isLead = isLeadProgramChair(email);
-                      const isSuper = isSuperAdmin(email);
-                      const canManage = canManageClusterMember(activeAdminEmail, email, consultations);
-                      const slotsCount = Array.isArray(prof.slots) ? prof.slots.length : 0;
-
-                      return (
-                        <tr key={email}>
-                          <td style={{ fontWeight: 700, color: 'var(--text-pure)' }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem' }}>
-                              <span>{prof.name}</span>
-                              {isCurrent && (
-                                <span style={{
-                                  fontSize: '0.66rem',
-                                  fontWeight: 800,
-                                  padding: '0.12rem 0.45rem',
-                                  borderRadius: '999px',
-                                  background: 'rgba(16, 185, 129, 0.14)',
-                                  color: 'var(--emerald-core)',
-                                  border: '1px solid var(--emerald-border)'
-                                }}>
-                                  You
-                                </span>
-                              )}
-                            </div>
-                          </td>
-                          <td style={{ fontFamily: 'var(--font-mono)', fontSize: '0.82rem', color: 'var(--text-muted)' }}>
-                            {prof.displayEmail || email}
-                          </td>
-                          <td>
-                            {canManage && !isLead ? (
-                              <select
-                                className="chair-status-select"
-                                value={prof.dept}
-                                onChange={e => handleReassignCluster(email, e.target.value)}
-                                style={{ fontSize: '0.78rem', padding: '0.32rem 0.65rem', fontWeight: 700 }}
-                                aria-label={`Change cluster for ${email}`}
-                              >
-                                <option value="CS">CS — Computer Science</option>
-                                <option value="IT">IT — Information Technology</option>
-                                <option value="DS">DS — Data Science</option>
-                                <option value="EMC">EMC — Entertainment & Multimedia</option>
-                                <option value="IS">IS — Information Systems</option>
-                              </select>
-                            ) : (
-                              <span style={{
-                                display: 'inline-block',
-                                fontSize: '0.74rem',
-                                fontWeight: 800,
-                                padding: '0.22rem 0.6rem',
-                                borderRadius: '6px',
-                                background: isSuper ? 'rgba(16, 185, 129, 0.12)' : 'rgba(185, 28, 28, 0.08)',
-                                color: isSuper ? 'var(--emerald-core)' : 'var(--crimson-bright)'
-                              }}>
-                                {prof.dept} — {CLUSTER_PROGRAM_LABELS[prof.dept] || prof.dept}
-                              </span>
-                            )}
-                          </td>
-                          <td style={{ whiteSpace: 'nowrap' }}>
-                            <span style={{
-                              display: 'inline-block',
-                              whiteSpace: 'nowrap',
-                              fontSize: '0.72rem',
-                              fontWeight: 700,
-                              padding: '0.2rem 0.55rem',
-                              borderRadius: '999px',
-                              background: isSuper
-                                ? 'rgba(16, 185, 129, 0.12)'
-                                : isLead
-                                ? 'rgba(245, 158, 11, 0.14)'
-                                : 'var(--bg-input)',
-                              color: isSuper
-                                ? 'var(--emerald-core)'
-                                : isLead
-                                ? '#d97706'
-                                : 'var(--text-muted)',
-                              border: '1px solid var(--border-hairline)'
-                            }}>
-                              {isSuper ? 'SOIT General Admin' : isLead ? 'Lead Program Chair' : 'Cluster Faculty'}
-                            </span>
-                          </td>
-                          <td style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontWeight: 600 }}>
-                            {slotsCount} time slot{slotsCount !== 1 ? 's' : ''}
-                          </td>
-                          <td style={{ whiteSpace: 'nowrap' }}>
-                            {isCurrent ? (
-                              <span style={{ fontSize: '0.74rem', color: 'var(--emerald-core)', fontWeight: 700 }}>
-                                Active Session
-                              </span>
-                            ) : canManage ? (
-                              <button
-                                type="button"
-                                onClick={() => handleRemoveAdmin(email)}
-                                style={{
-                                  display: 'inline-flex',
-                                  alignItems: 'center',
-                                  gap: '0.35rem',
-                                  padding: '0.36rem 0.75rem',
-                                  fontSize: '0.74rem',
-                                  fontWeight: 700,
-                                  color: '#ef4444',
-                                  background: 'rgba(239, 68, 68, 0.08)',
-                                  border: '1px solid rgba(239, 68, 68, 0.25)',
-                                  borderRadius: '999px',
-                                  cursor: 'pointer'
-                                }}
-                                title={`Remove ${email} from ${prof.dept} cluster`}
-                              >
-                                <Trash2 size={12} />
-                                <span>Remove</span>
-                              </button>
-                            ) : (
-                              <span style={{
-                                display: 'inline-flex',
-                                alignItems: 'center',
-                                gap: '0.3rem',
-                                fontSize: '0.72rem',
-                                fontWeight: 700,
-                                color: 'var(--text-faint)'
-                              }}>
-                                <Lock size={11} />
-                                <span>{isLead ? `Protected (${prof.dept} Chair)` : `Managed by ${prof.dept} Chair`}</span>
-                              </span>
-                            )}
-                          </td>
-                        </tr>
-                      );
-                    })}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </div>
+      {activeTab === 'admins' && hasAdminAccess && (
+        <UserManagementSection
+          activeAdminEmail={activeAdminEmail}
+          consultations={consultations}
+          adminEmails={adminEmails}
+          adminRoleEmails={adminRoleEmails}
+          requests={requests}
+          onRefreshData={() => {
+            setAdminEmails(getAllowedAdminEmails());
+            fetchAdminRolesFromCloud().then(r => setAdminRoleEmails(r));
+          }}
+          onAdminRolesChanged={(updatedRoles) => {
+            setAdminRoleEmails(updatedRoles);
+          }}
+          onConsultationsChanged={(updatedConsultations) => {
+            // refresh consultations if needed
+          }}
+        />
       )}
 
       {/* TAB 6: END OF QUARTER & PREVIOUS QUARTERS ARCHIVE (REFINED LOW-COGNITIVE LOAD UI) */}

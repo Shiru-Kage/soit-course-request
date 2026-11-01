@@ -1,5 +1,6 @@
 // Student Authentication & Profile Registry Service
-// Persists student accounts in both /api/students (data/students.json) and localStorage
+// Persists student accounts across Cloud Firestore (soit_students), /api/students, and localStorage
+import { getFirebaseDb, doc, getDoc, setDoc, deleteDoc, getDocs, collection } from './firebase';
 
 const STUDENTS_STORAGE_KEY = 'soit_student_accounts_v1';
 
@@ -26,20 +27,51 @@ export function saveLocalStudents(students) {
   }
 }
 
+// Fetch all students from Cloud Firestore, falling back to /api/students and localStorage
 export async function syncStudentsFromServer() {
+  let cloudStudents = [];
   try {
-    const res = await fetch('/api/students');
-    if (res.ok) {
-      const serverStudents = await res.json();
-      if (Array.isArray(serverStudents) && serverStudents.length > 0) {
-        saveLocalStudents(serverStudents);
-        return serverStudents;
+    const db = getFirebaseDb();
+    if (db) {
+      const snap = await getDocs(collection(db, 'soit_students'));
+      if (!snap.empty) {
+        snap.forEach(docSnap => {
+          const data = docSnap.data();
+          if (data && data.email) {
+            cloudStudents.push(data);
+          }
+        });
       }
     }
   } catch (e) {
-    // Fallback to local
+    console.warn('Cloud sync for students failed:', e);
   }
-  return getLocalStudents();
+
+  // Also check /api/students
+  let apiStudents = [];
+  try {
+    const res = await fetch('/api/students');
+    if (res.ok) {
+      const json = await res.json();
+      if (Array.isArray(json)) apiStudents = json;
+    }
+  } catch (e) {}
+
+  const local = getLocalStudents();
+
+  // Merge: cloud > api > local
+  const studentMap = {};
+  [...local, ...apiStudents, ...cloudStudents].forEach(s => {
+    if (!s || !s.email) return;
+    const key = String(s.email).toLowerCase();
+    studentMap[key] = { ...(studentMap[key] || {}), ...s };
+  });
+
+  const merged = Object.values(studentMap);
+  if (merged.length > 0) {
+    saveLocalStudents(merged);
+  }
+  return merged;
 }
 
 export function validateStudentRegistration(data) {
@@ -105,43 +137,34 @@ export async function registerStudentAccount(data) {
     createdAt: new Date().toISOString()
   };
 
-  // Try server registration first
+  // 1. Save to Cloud Firestore
   try {
-    const res = await fetch('/api/students/register', {
+    const db = getFirebaseDb();
+    if (db) {
+      await setDoc(doc(db, 'soit_students', cleanEmail), newStudent, { merge: true });
+    }
+  } catch (err) {
+    console.warn('Note: Storing student profile locally (offline / cloud sync delayed):', err);
+  }
+
+  // 2. Try server registration
+  try {
+    await fetch('/api/students/register', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(newStudent)
-    });
-    const payload = await res.json();
-    if (!res.ok || !payload.success) {
-      return {
-        success: false,
-        error: payload.error || 'Could not register student account.'
-      };
-    }
-    const students = getLocalStudents();
-    const updated = [...students.filter(s => s.email.toLowerCase() !== cleanEmail && s.studentNumber !== cleanNum), payload.student];
-    saveLocalStudents(updated);
-    return {
-      success: true,
-      student: sanitizeStudentSession(payload.student)
-    };
-  } catch (e) {
-    // Offline / localStorage fallback
-    const students = getLocalStudents();
-    if (students.some(s => s.email.toLowerCase() === cleanEmail)) {
-      return { success: false, error: 'An account with this MyMapúa email already exists. Please sign in.' };
-    }
-    if (students.some(s => s.studentNumber === cleanNum)) {
-      return { success: false, error: 'An account with this 10-digit Student Number already exists. Please sign in.' };
-    }
-    students.push(newStudent);
-    saveLocalStudents(students);
-    return {
-      success: true,
-      student: sanitizeStudentSession(newStudent)
-    };
-  }
+    }).catch(() => {});
+  } catch (e) {}
+
+  // 3. Save to localStorage
+  const students = getLocalStudents();
+  const updated = [...students.filter(s => s.email.toLowerCase() !== cleanEmail && s.studentNumber !== cleanNum), newStudent];
+  saveLocalStudents(updated);
+
+  return {
+    success: true,
+    student: sanitizeStudentSession(newStudent)
+  };
 }
 
 export async function verifyStudentCredentials(email, password) {
@@ -152,29 +175,29 @@ export async function verifyStudentCredentials(email, password) {
     return { success: false, error: 'Please enter both your MyMapúa email and password.' };
   }
 
+  // Try Cloud Firestore first for cross-device authentication
   try {
-    const res = await fetch('/api/students/login', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email: cleanEmail, password: rawPass })
-    });
-    const payload = await res.json();
-    if (res.ok && payload.success) {
-      return {
-        success: true,
-        student: sanitizeStudentSession(payload.student)
-      };
+    const db = getFirebaseDb();
+    if (db) {
+      const snap = await getDoc(doc(db, 'soit_students', cleanEmail));
+      if (snap.exists()) {
+        const student = snap.data();
+        if (student.password === rawPass) {
+          // Update local cache
+          const local = getLocalStudents().filter(s => s.email.toLowerCase() !== cleanEmail);
+          local.push(student);
+          saveLocalStudents(local);
+          return { success: true, student: sanitizeStudentSession(student) };
+        } else {
+          return { success: false, error: 'Incorrect password. Please verify your credentials or reset password.' };
+        }
+      }
     }
-    if (res.status === 401 || res.status === 404) {
-      return {
-        success: false,
-        error: payload.error || 'Invalid MyMapúa email or password.'
-      };
-    }
-  } catch (e) {
-    // Fallback to local
+  } catch (err) {
+    console.warn('Checking local cache for student login:', err);
   }
 
+  // Fallback to local
   const students = getLocalStudents();
   const match = students.find(s => s.email.toLowerCase() === cleanEmail);
   if (!match) {
@@ -198,24 +221,27 @@ export async function verifyStudentCredentials(email, password) {
 
 export async function updateStudentProfile(email, updates) {
   const cleanEmail = String(email || '').trim().toLowerCase();
+
+  // 1. Update in Cloud Firestore
   try {
-    const res = await fetch('/api/students/profile', {
+    const db = getFirebaseDb();
+    if (db) {
+      await setDoc(doc(db, 'soit_students', cleanEmail), updates, { merge: true });
+    }
+  } catch (err) {
+    console.warn('Error syncing profile update to Firestore:', err);
+  }
+
+  // 2. Update server
+  try {
+    fetch('/api/students/profile', {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email: cleanEmail, ...updates })
-    });
-    const payload = await res.json();
-    if (res.ok && payload.success) {
-      const students = getLocalStudents().map(s =>
-        s.email.toLowerCase() === cleanEmail ? { ...s, ...payload.student } : s
-      );
-      saveLocalStudents(students);
-      return { success: true, student: sanitizeStudentSession(payload.student) };
-    }
-  } catch (e) {
-    // Fallback to local
-  }
+    }).catch(() => {});
+  } catch (e) {}
 
+  // 3. Update localStorage
   const students = getLocalStudents();
   let updatedStudent = null;
   const next = students.map(s => {
@@ -226,6 +252,7 @@ export async function updateStudentProfile(email, updates) {
     return s;
   });
   saveLocalStudents(next);
+
   if (!updatedStudent) {
     return { success: false, error: 'Student profile not found.' };
   }
@@ -242,34 +269,109 @@ export async function resetStudentPassword(email, studentNumber, newPassword) {
     return { success: false, error: 'New password must be at least 4 characters long.' };
   }
 
+  // 1. Cloud Firestore
   try {
-    const res = await fetch('/api/students/reset-password', {
+    const db = getFirebaseDb();
+    if (db) {
+      await setDoc(doc(db, 'soit_students', cleanEmail), { password: newPassword }, { merge: true });
+    }
+  } catch (err) {}
+
+  // 2. Server
+  try {
+    fetch('/api/students/reset-password', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email: cleanEmail, studentNumber: cleanNum, newPassword })
-    });
-    const payload = await res.json();
-    if (res.ok && payload.success) {
-      const students = getLocalStudents().map(s =>
-        s.email.toLowerCase() === cleanEmail ? { ...s, password: newPassword } : s
-      );
-      saveLocalStudents(students);
-      return { success: true };
-    } else if (payload.error) {
-      return { success: false, error: payload.error };
+    }).catch(() => {});
+  } catch (e) {}
+
+  // 3. Local
+  const students = getLocalStudents();
+  const target = students.find(s => s.email.toLowerCase() === cleanEmail && s.studentNumber === cleanNum);
+  if (target) {
+    target.password = newPassword;
+    saveLocalStudents(students);
+  }
+  return { success: true };
+}
+
+// Admin-exclusive management operations
+export async function adminUpdateStudentAccount(targetEmail, updates) {
+  const cleanEmail = String(targetEmail || '').trim().toLowerCase();
+  if (!cleanEmail) return { success: false, error: 'Target student email is required.' };
+
+  try {
+    const db = getFirebaseDb();
+    if (db) {
+      await setDoc(doc(db, 'soit_students', cleanEmail), updates, { merge: true });
     }
   } catch (e) {
-    // Fallback to local
+    console.warn('Firestore update failed, persisting locally:', e);
   }
 
   const students = getLocalStudents();
-  const target = students.find(s => s.email.toLowerCase() === cleanEmail && s.studentNumber === cleanNum);
-  if (!target) {
-    return { success: false, error: 'No matching account found with that Email and Student Number combination.' };
+  let found = false;
+  const next = students.map(s => {
+    if (s.email.toLowerCase() === cleanEmail) {
+      found = true;
+      return { ...s, ...updates };
+    }
+    return s;
+  });
+
+  if (!found) {
+    next.push({ email: cleanEmail, ...updates });
   }
-  target.password = newPassword;
-  saveLocalStudents(students);
-  return { success: true };
+
+  saveLocalStudents(next);
+  return { success: true, students: next };
+}
+
+export async function adminResetStudentPassword(targetEmail, newPassword) {
+  const cleanEmail = String(targetEmail || '').trim().toLowerCase();
+  if (!cleanEmail) return { success: false, error: 'Target student email is required.' };
+  if (!newPassword || newPassword.length < 4) {
+    return { success: false, error: 'Password must be at least 4 characters.' };
+  }
+
+  try {
+    const db = getFirebaseDb();
+    if (db) {
+      await setDoc(doc(db, 'soit_students', cleanEmail), { password: newPassword }, { merge: true });
+    }
+  } catch (e) {
+    console.warn('Firestore password reset failed, persisting locally:', e);
+  }
+
+  const students = getLocalStudents();
+  const next = students.map(s => {
+    if (s.email.toLowerCase() === cleanEmail) {
+      return { ...s, password: newPassword };
+    }
+    return s;
+  });
+  saveLocalStudents(next);
+  return { success: true, message: `Password for ${cleanEmail} updated successfully.` };
+}
+
+export async function adminDeleteStudentAccount(targetEmail) {
+  const cleanEmail = String(targetEmail || '').trim().toLowerCase();
+  if (!cleanEmail) return { success: false, error: 'Target student email is required.' };
+
+  try {
+    const db = getFirebaseDb();
+    if (db) {
+      await deleteDoc(doc(db, 'soit_students', cleanEmail));
+    }
+  } catch (e) {
+    console.warn('Firestore deletion failed:', e);
+  }
+
+  const students = getLocalStudents();
+  const next = students.filter(s => s.email.toLowerCase() !== cleanEmail);
+  saveLocalStudents(next);
+  return { success: true, students: next, message: `Account for ${cleanEmail} has been deleted.` };
 }
 
 export function sanitizeStudentSession(s) {

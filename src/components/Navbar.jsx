@@ -38,6 +38,8 @@ export default function Navbar({
   openedSections = [],
   onSectionActionChange
 }) {
+  const isUserAdmin = currentUser?.role === 'chair' && hasAdminPrivilege(currentUser?.email);
+
   // Dynamic Island Logic
   const readyToOpenCourse = useMemo(() => {
     if (currentUser?.role !== 'chair' || !coursesWithDemand) return null;
@@ -412,7 +414,7 @@ export default function Navbar({
                   }}
                 >
                   <div style={{ padding: '0.4rem 0.6rem', fontSize: '0.7rem', fontWeight: 800, color: 'var(--text-faint)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
-                    Active Session: {currentUser?.role === 'chair' ? 'Faculty Admin' : 'Student'}
+                    Active Session: {currentUser?.role === 'chair' ? (isUserAdmin ? 'System Administrator' : 'Program Chair / Faculty') : 'Student'}
                   </div>
 
                   {currentUser?.role === 'chair' ? (
@@ -609,7 +611,7 @@ export default function Navbar({
                 color: currentUser?.role === 'chair' ? 'var(--crimson-bright)' : '#d97706',
                 border: '1px solid currentColor'
               }}>
-                {currentUser?.role === 'chair' ? 'Faculty' : 'Student'}
+                {currentUser?.role === 'chair' ? (isUserAdmin ? 'Admin' : 'Chair / Faculty') : 'Student'}
               </span>
             </div>
 
