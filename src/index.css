@@ -202,30 +202,37 @@ button {
 }
 
 /* ==========================================================================
-   FLOATING GLASS DOCK (NAVBAR)
+   EDGE-TO-EDGE FULL-WIDTH TOP BAR (NAVBAR)
    ========================================================================== */
 .navbar-header {
   position: sticky;
-  top: 1rem;
+  top: 0;
+  left: 0;
+  right: 0;
   z-index: 50;
-  max-width: 1360px;
-  margin: 0 auto;
-  padding: 0 1rem;
   width: 100%;
-}
-
-.navbar-inner {
+  margin: 0;
+  padding: 0;
   background: var(--bg-card);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
-  border: 1px solid var(--border-hairline);
-  border-radius: var(--radius-xl);
-  padding: 0.65rem 1.25rem;
+  border-bottom: 1px solid var(--border-hairline);
+  box-shadow: 0 2px 12px -2px rgba(0, 0, 0, 0.05);
+}
+
+.navbar-inner {
+  width: 100%;
+  max-width: 1360px;
+  margin: 0 auto;
+  padding: 0.65rem 1.5rem;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 1rem;
-  box-shadow: var(--shadow-bento);
+  gap: 0.75rem;
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
 }
 
 .navbar-brand {
@@ -1454,28 +1461,44 @@ html, body {
   box-sizing: border-box !important;
 }
 
-/* Floating Glass Navbar Dock & Containment */
+/* Full-Width Top Bar & Header */
 .navbar-header {
   box-sizing: border-box !important;
   width: 100% !important;
-  max-width: 1360px !important;
+  max-width: 100% !important;
   position: sticky !important;
-  top: 1rem !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
   z-index: 100 !important;
+  background: var(--bg-card) !important;
+  backdrop-filter: blur(20px) !important;
+  -webkit-backdrop-filter: blur(20px) !important;
+  border-bottom: 1px solid var(--border-hairline) !important;
+  box-shadow: 0 2px 12px -2px rgba(0, 0, 0, 0.05) !important;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1) !important;
 }
 
 .navbar-inner {
   position: relative !important;
   width: 100% !important;
-  max-width: 100% !important;
+  max-width: 1360px !important;
+  margin: 0 auto !important;
   box-sizing: border-box !important;
   overflow: visible !important;
   display: flex !important;
   align-items: center !important;
   justify-content: space-between !important;
-  gap: 0.65rem !important;
-  padding: 0.55rem 1.15rem !important;
-  border-radius: var(--radius-xl) !important;
+  gap: 0.75rem !important;
+  padding: 0.65rem 1.5rem !important;
+  border: none !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
 }
 
 .navbar-nav {
@@ -1689,11 +1712,11 @@ html, body {
 /* Compact Brand & Controls on Smaller Screens */
 @media (max-width: 640px) {
   .navbar-header {
-    top: 0.4rem !important;
-    padding: 0 0.5rem !important;
+    top: 0 !important;
+    padding: 0 !important;
   }
   .navbar-inner {
-    padding: 0.45rem 0.75rem !important;
+    padding: 0.5rem 0.85rem !important;
     gap: 0.4rem !important;
   }
   .brand-crest {
@@ -2271,30 +2294,40 @@ html, body {
 }
 
 
-/* Floating Glass Dock - Specular Highlight & Scroll Compression */
-.navbar-inner {
-  border-top: 1px solid rgba(255, 255, 255, 0.2) !important;
-  transition: padding 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s ease, background-color 0.25s ease !important;
+/* Full-Width Top Bar Theme & Scroll States */
+[data-theme='light'] .navbar-header,
+[data-theme='mapua'] .navbar-header {
+  background: rgba(253, 248, 244, 0.92) !important;
+  border-bottom: 1px solid rgba(226, 218, 210, 0.85) !important;
+  box-shadow: 0 2px 12px -2px rgba(153, 27, 27, 0.04) !important;
 }
 
-[data-theme='light'] .navbar-inner,
-[data-theme='mapua'] .navbar-inner {
-  border-top: 1px solid rgba(255, 255, 255, 0.8) !important;
-  box-shadow: 0 14px 34px -10px rgba(153, 27, 27, 0.08), 0 2px 8px -2px rgba(0, 0, 0, 0.04), 0 0 0 1px rgba(0, 0, 0, 0.06) !important;
+[data-theme='dark'] .navbar-header {
+  background: rgba(13, 17, 23, 0.9) !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.4) !important;
 }
 
 .navbar-header.navbar-scrolled {
-  top: 0.5rem !important;
+  top: 0 !important;
+  box-shadow: 0 6px 20px -4px rgba(0, 0, 0, 0.1) !important;
 }
 
 .navbar-header.navbar-scrolled .navbar-inner {
-  padding: 0.45rem 1.15rem !important;
-  box-shadow: 0 18px 40px -10px rgba(0, 0, 0, 0.4) !important;
+  padding: 0.52rem 1.5rem !important;
 }
 
-[data-theme='light'] .navbar-header.navbar-scrolled .navbar-inner,
-[data-theme='mapua'] .navbar-header.navbar-scrolled .navbar-inner {
-  box-shadow: 0 16px 36px -10px rgba(153, 27, 27, 0.12), 0 2px 10px -2px rgba(0, 0, 0, 0.06) !important;
+[data-theme='light'] .navbar-header.navbar-scrolled,
+[data-theme='mapua'] .navbar-header.navbar-scrolled {
+  background: rgba(255, 255, 255, 0.97) !important;
+  border-bottom: 1px solid rgba(215, 205, 195, 0.95) !important;
+  box-shadow: 0 6px 22px -4px rgba(153, 27, 27, 0.08) !important;
+}
+
+[data-theme='dark'] .navbar-header.navbar-scrolled {
+  background: rgba(10, 14, 20, 0.97) !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12) !important;
+  box-shadow: 0 8px 30px -4px rgba(0, 0, 0, 0.6) !important;
 }
 
 
