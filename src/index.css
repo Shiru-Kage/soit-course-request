@@ -222,13 +222,13 @@ button {
 
 .navbar-inner {
   width: 100%;
-  max-width: 1360px;
-  margin: 0 auto;
-  padding: 0.65rem 1.5rem;
+  max-width: 100%;
+  margin: 0;
+  padding: 0.65rem 2rem;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 0.75rem;
+  gap: 1rem;
   background: transparent;
   border: none;
   border-radius: 0;
@@ -236,8 +236,10 @@ button {
 }
 
 .navbar-brand {
+  flex: 1 0 0%;
   display: flex;
   align-items: center;
+  justify-content: flex-start;
   gap: 0.85rem;
   text-decoration: none;
 }
@@ -1484,21 +1486,30 @@ html, body {
 .navbar-inner {
   position: relative !important;
   width: 100% !important;
-  max-width: 1360px !important;
-  margin: 0 auto !important;
+  max-width: 100% !important;
+  margin: 0 !important;
   box-sizing: border-box !important;
   overflow: visible !important;
   display: flex !important;
   align-items: center !important;
   justify-content: space-between !important;
-  gap: 0.75rem !important;
-  padding: 0.65rem 1.5rem !important;
+  gap: 1rem !important;
+  padding: 0.65rem 2rem !important;
   border: none !important;
   border-radius: 0 !important;
   background: transparent !important;
   box-shadow: none !important;
   backdrop-filter: none !important;
   -webkit-backdrop-filter: none !important;
+}
+
+.navbar-brand {
+  flex: 1 0 0% !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: flex-start !important;
+  gap: 0.85rem !important;
+  text-decoration: none !important;
 }
 
 .navbar-nav {
@@ -1520,8 +1531,10 @@ html, body {
 }
 
 .navbar-actions {
+  flex: 1 0 0% !important;
   display: flex !important;
   align-items: center !important;
+  justify-content: flex-end !important;
   gap: 0.5rem !important;
   flex-shrink: 0 !important;
 }
@@ -2314,7 +2327,7 @@ html, body {
 }
 
 .navbar-header.navbar-scrolled .navbar-inner {
-  padding: 0.52rem 1.5rem !important;
+  padding: 0.52rem 2rem !important;
 }
 
 [data-theme='light'] .navbar-header.navbar-scrolled,
