@@ -853,7 +853,7 @@ export default function UserManagementSection({
                 </tr>
               ) : (
                 displayedUsers.map(u => {
-                  const isCurrentSession = activeAdminEmail.toLowerCase() === u.email.toLowerCase();
+                  const isCurrentSession = String(activeAdminEmail || '').toLowerCase() === String(u?.email || '').toLowerCase();
                   const isSuper = isSuperAdmin(u.email);
                   const isLead = isLeadProgramChair(u.email);
 

@@ -10,7 +10,7 @@ export function getLocalStudents() {
     if (raw) {
       const parsed = JSON.parse(raw);
       if (Array.isArray(parsed)) {
-        return parsed.filter(s => String(s.email || '').toLowerCase() !== 'jdelacruz@mymail.mapua.edu.ph');
+        return parsed.filter(s => s && typeof s === 'object' && s.email && String(s.email).toLowerCase() !== 'jdelacruz@mymail.mapua.edu.ph');
       }
     }
   } catch (e) {
@@ -158,7 +158,7 @@ export async function registerStudentAccount(data) {
 
   // 3. Save to localStorage
   const students = getLocalStudents();
-  const updated = [...students.filter(s => s.email.toLowerCase() !== cleanEmail && s.studentNumber !== cleanNum), newStudent];
+  const updated = [...students.filter(s => String(s?.email || '').toLowerCase() !== cleanEmail && String(s?.studentNumber || '') !== cleanNum), newStudent];
   saveLocalStudents(updated);
 
   return {
@@ -182,9 +182,9 @@ export async function verifyStudentCredentials(email, password) {
       const snap = await getDoc(doc(db, 'soit_students', cleanEmail));
       if (snap.exists()) {
         const student = snap.data();
-        if (student.password === rawPass) {
+        if (student && String(student.password || '') === rawPass) {
           // Update local cache
-          const local = getLocalStudents().filter(s => s.email.toLowerCase() !== cleanEmail);
+          const local = getLocalStudents().filter(s => String(s?.email || '').toLowerCase() !== cleanEmail);
           local.push(student);
           saveLocalStudents(local);
           return { success: true, student: sanitizeStudentSession(student) };
@@ -199,14 +199,14 @@ export async function verifyStudentCredentials(email, password) {
 
   // Fallback to local
   const students = getLocalStudents();
-  const match = students.find(s => s.email.toLowerCase() === cleanEmail);
+  const match = students.find(s => String(s?.email || '').toLowerCase() === cleanEmail);
   if (!match) {
     return {
       success: false,
       error: 'No student account found for this email. Please Sign Up first to create your Student Profile.'
     };
   }
-  if (match.password !== rawPass) {
+  if (String(match.password || '') !== rawPass) {
     return {
       success: false,
       error: 'Incorrect password. Please try again or reset your password.'
@@ -245,7 +245,7 @@ export async function updateStudentProfile(email, updates) {
   const students = getLocalStudents();
   let updatedStudent = null;
   const next = students.map(s => {
-    if (s.email.toLowerCase() === cleanEmail) {
+    if (String(s?.email || '').toLowerCase() === cleanEmail) {
       updatedStudent = { ...s, ...updates };
       return updatedStudent;
     }
@@ -288,7 +288,7 @@ export async function resetStudentPassword(email, studentNumber, newPassword) {
 
   // 3. Local
   const students = getLocalStudents();
-  const target = students.find(s => s.email.toLowerCase() === cleanEmail && s.studentNumber === cleanNum);
+  const target = students.find(s => String(s?.email || '').toLowerCase() === cleanEmail && String(s?.studentNumber || '') === cleanNum);
   if (target) {
     target.password = newPassword;
     saveLocalStudents(students);
@@ -313,7 +313,7 @@ export async function adminUpdateStudentAccount(targetEmail, updates) {
   const students = getLocalStudents();
   let found = false;
   const next = students.map(s => {
-    if (s.email.toLowerCase() === cleanEmail) {
+    if (String(s?.email || '').toLowerCase() === cleanEmail) {
       found = true;
       return { ...s, ...updates };
     }
@@ -346,7 +346,7 @@ export async function adminResetStudentPassword(targetEmail, newPassword) {
 
   const students = getLocalStudents();
   const next = students.map(s => {
-    if (s.email.toLowerCase() === cleanEmail) {
+    if (String(s?.email || '').toLowerCase() === cleanEmail) {
       return { ...s, password: newPassword };
     }
     return s;
@@ -369,7 +369,7 @@ export async function adminDeleteStudentAccount(targetEmail) {
   }
 
   const students = getLocalStudents();
-  const next = students.filter(s => s.email.toLowerCase() !== cleanEmail);
+  const next = students.filter(s => String(s?.email || '').toLowerCase() !== cleanEmail);
   saveLocalStudents(next);
   return { success: true, students: next, message: `Account for ${cleanEmail} has been deleted.` };
 }
