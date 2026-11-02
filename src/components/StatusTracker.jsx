@@ -306,29 +306,18 @@ export default function StatusTracker({
             )}
           </div>
 
-          {/* Per-Course Filter Dropdown */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem' }}>
-            <Filter size={15} style={{ color: 'var(--crimson-bright)', flexShrink: 0 }} />
+          {/* Per-Course Filter Combobox */}
+          <div style={{ position: 'relative', display: 'flex', alignItems: 'center', minWidth: '220px' }}>
+            <Filter size={14} style={{ position: 'absolute', left: '0.85rem', color: 'var(--crimson-bright)', pointerEvents: 'none', zIndex: 1 }} />
             <select
-              className="chair-status-select"
+              className="chair-status-select tracker-course-select"
               value={selectedCourse}
               onChange={e => setSelectedCourse(e.target.value)}
-              style={{ 
-                padding: '0.58rem 0.85rem', 
-                fontSize: '0.82rem', 
-                minWidth: '240px', 
-                fontWeight: 700,
-                colorScheme: 'dark',
-                background: 'var(--bg-surface)',
-                color: 'var(--text-pure)',
-                borderColor: 'var(--border-medium)',
-                cursor: 'pointer'
-              }}
               aria-label="Filter by specific course"
             >
-              <option value="ALL" style={{ background: '#0f172a', color: '#f8fafc' }}>All Courses ({courseFilterOptions.reduce((s, c) => s + c.count, 0)} petitions)</option>
+              <option value="ALL">All Courses ({courseFilterOptions.reduce((s, c) => s + c.count, 0)})</option>
               {courseFilterOptions.map(c => (
-                <option key={c.code} value={c.code} style={{ background: '#0f172a', color: '#f8fafc' }}>
+                <option key={c.code} value={c.code}>
                   {c.code} — {c.title} ({c.count})
                 </option>
               ))}
@@ -359,7 +348,8 @@ export default function StatusTracker({
                   className={`dept-chip ${selectedDept === d.id ? 'active' : ''}`}
                   onClick={() => setSelectedDept(d.id)}
                 >
-                  {d.label} ({countForDept})
+                  <span>{d.label}</span>
+                  {countForDept > 0 && <span className="chip-count-badge">{countForDept}</span>}
                 </button>
               );
             })}
@@ -373,7 +363,8 @@ export default function StatusTracker({
                 className={`dept-chip ${filterMode === 'MINE' ? 'active' : ''}`}
                 onClick={() => setFilterMode(filterMode === 'MINE' ? 'ALL' : 'MINE')}
               >
-                {currentUser.role === 'chair' ? `My Removable Dept (${myRequestsCount})` : `My Petitions (${myRequestsCount})`}
+                <span>{currentUser.role === 'chair' ? 'My Removable Dept' : 'My Petitions'}</span>
+                {myRequestsCount > 0 && <span className="chip-count-badge">{myRequestsCount}</span>}
               </button>
             )}
             <button
@@ -381,21 +372,24 @@ export default function StatusTracker({
               className={`dept-chip ${filterMode === 'ALL' ? 'active' : ''}`}
               onClick={() => setFilterMode('ALL')}
             >
-              All Statuses ({requests.length})
+              <span>All Statuses</span>
+              {requests.length > 0 && <span className="chip-count-badge">{requests.length}</span>}
             </button>
             <button
               type="button"
               className={`dept-chip ${filterMode === 'MET' ? 'active' : ''}`}
               onClick={() => setFilterMode('MET')}
             >
-              Threshold Met ({metCount})
+              <span>Threshold Met</span>
+              {metCount > 0 && <span className="chip-count-badge">{metCount}</span>}
             </button>
             <button
               type="button"
               className={`dept-chip ${filterMode === 'PENDING' ? 'active' : ''}`}
               onClick={() => setFilterMode('PENDING')}
             >
-              Pending Quota ({pendingCount})
+              <span>Pending Quota</span>
+              {pendingCount > 0 && <span className="chip-count-badge">{pendingCount}</span>}
             </button>
           </div>
         </div>
@@ -413,23 +407,23 @@ export default function StatusTracker({
           )}
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', background: 'var(--bg-input)', padding: '0.2rem', borderRadius: 'var(--radius-full)', border: '1px solid var(--border-hairline)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', background: 'var(--bg-input)', padding: '0.25rem', borderRadius: 'var(--radius-full)', border: '1px solid var(--border-hairline)' }}>
             <button
               type="button"
               className={`action-pill-btn ${displayFormat === 'ticket' ? 'active' : ''}`}
               onClick={() => setDisplayFormat('ticket')}
-              style={{ padding: '0.25rem 0.65rem', fontSize: '0.72rem', borderRadius: 'var(--radius-full)', background: displayFormat === 'ticket' ? 'linear-gradient(135deg, var(--crimson-core), #7f1d1d)' : 'transparent', color: displayFormat === 'ticket' ? '#ffffff' : 'var(--text-muted)' }}
+              style={{ padding: '0.35rem 0.75rem', fontSize: '0.75rem', fontWeight: 700, borderRadius: 'var(--radius-full)' }}
             >
-              <Ticket size={12} />
+              <Ticket size={13} />
               <span>Boarding Passes</span>
             </button>
             <button
               type="button"
               className={`action-pill-btn ${displayFormat === 'list' ? 'active' : ''}`}
               onClick={() => setDisplayFormat('list')}
-              style={{ padding: '0.25rem 0.65rem', fontSize: '0.72rem', borderRadius: 'var(--radius-full)', background: displayFormat === 'list' ? 'linear-gradient(135deg, var(--crimson-core), #7f1d1d)' : 'transparent', color: displayFormat === 'list' ? '#ffffff' : 'var(--text-muted)' }}
+              style={{ padding: '0.35rem 0.75rem', fontSize: '0.75rem', fontWeight: 700, borderRadius: 'var(--radius-full)' }}
             >
-              <Layers size={12} />
+              <Layers size={13} />
               <span>Compact Roster</span>
             </button>
           </div>

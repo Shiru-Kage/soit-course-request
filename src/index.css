@@ -1398,14 +1398,10 @@ select option:focus {
   color: #f8fafc !important;
 }
 
-[data-theme='light'] select,
-[data-theme='mapua'] select,
-[data-theme='light'] select.chair-status-select,
-[data-theme='mapua'] select.chair-status-select,
+[data-theme='light'] select:not(.chair-status-select),
+[data-theme='mapua'] select:not(.chair-status-select),
 [data-theme='light'] select.custom-input,
 [data-theme='mapua'] select.custom-input,
-[data-theme='light'] .chair-status-select,
-[data-theme='mapua'] .chair-status-select,
 [data-theme='light'] .custom-select,
 [data-theme='mapua'] .custom-select {
   color-scheme: light !important;
@@ -2562,4 +2558,124 @@ html, body {
     opacity: 1;
     transform: scale(1) translateY(0);
   }
+}
+
+/* ==========================================================================
+   MODERN STATE-AWARE SECTION ACTION DROPDOWNS & FILTER CHIPS
+   ========================================================================== */
+.chair-status-select {
+  appearance: none !important;
+  -webkit-appearance: none !important;
+  -moz-appearance: none !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  padding: 0.38rem 1.85rem 0.38rem 0.85rem !important;
+  font-size: 0.76rem !important;
+  font-weight: 750 !important;
+  border-radius: 999px !important;
+  cursor: pointer !important;
+  border-width: 1.5px !important;
+  border-style: solid !important;
+  line-height: 1.35 !important;
+  outline: none !important;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
+  background-repeat: no-repeat !important;
+  background-position: right 0.65rem center !important;
+  background-size: 9px 5px !important;
+}
+
+[data-theme='light'] .chair-status-select,
+[data-theme='mapua'] .chair-status-select {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath fill='none' stroke='%23475569' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round' d='m1 1 4 4 4-4'/%3E%3C/svg%3E") !important;
+}
+
+[data-theme='dark'] .chair-status-select {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath fill='none' stroke='%2394a3b8' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round' d='m1 1 4 4 4-4'/%3E%3C/svg%3E") !important;
+}
+
+/* Action State: OPEN (Emerald) */
+.chair-status-select.action-select-open,
+select.chair-status-select[value="OPEN"] {
+  background-color: rgba(16, 185, 129, 0.12) !important;
+  border-color: rgba(16, 185, 129, 0.5) !important;
+  color: var(--emerald-core, #059669) !important;
+}
+.chair-status-select.action-select-open:hover {
+  background-color: rgba(16, 185, 129, 0.2) !important;
+  border-color: var(--emerald-core, #059669) !important;
+}
+
+/* Action State: CONSULTATION (Amber/Gold) */
+.chair-status-select.action-select-consultation,
+select.chair-status-select[value="CONSULTATION"] {
+  background-color: rgba(245, 158, 11, 0.12) !important;
+  border-color: rgba(245, 158, 11, 0.5) !important;
+  color: #d97706 !important;
+}
+.chair-status-select.action-select-consultation:hover {
+  background-color: rgba(245, 158, 11, 0.2) !important;
+  border-color: #d97706 !important;
+}
+
+/* Action State: CLOSED (Muted / Slate) */
+.chair-status-select.action-select-closed,
+select.chair-status-select[value="CLOSED"] {
+  background-color: var(--bg-subtle, #f8fafc) !important;
+  border-color: var(--border-medium, rgba(0, 0, 0, 0.16)) !important;
+  color: var(--text-secondary, #475569) !important;
+}
+.chair-status-select.action-select-closed:hover {
+  background-color: var(--bg-surface, #ffffff) !important;
+  border-color: var(--border-strong, #64748b) !important;
+}
+
+/* Combobox in Status Tracker */
+.tracker-course-select {
+  height: 42px !important;
+  padding: 0 2.2rem 0 2.3rem !important;
+  border-radius: var(--radius-full) !important;
+  font-size: 0.825rem !important;
+  border: 1.5px solid var(--border-medium) !important;
+  background-color: var(--bg-subtle) !important;
+  color: var(--text-pure) !important;
+  font-weight: 700 !important;
+}
+.tracker-course-select:focus {
+  border-color: var(--crimson-core) !important;
+  box-shadow: 0 0 0 3px var(--crimson-glow) !important;
+}
+
+/* Chip Count Badge */
+.chip-count-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 999px;
+  font-size: 0.675rem;
+  font-weight: 800;
+  background: rgba(0, 0, 0, 0.08);
+  color: inherit;
+  margin-left: 0.35rem;
+  line-height: 1;
+}
+
+.dept-chip.active .chip-count-badge {
+  background: rgba(255, 255, 255, 0.28);
+  color: #ffffff;
+}
+
+/* High-Contrast Segmented View Toggle Buttons */
+.action-pill-btn.active,
+[data-theme='light'] .action-pill-btn.active,
+[data-theme='mapua'] .action-pill-btn.active,
+[data-theme='dark'] .action-pill-btn.active {
+  background: linear-gradient(135deg, var(--crimson-core, #8b0000), #7f1d1d) !important;
+  background-color: var(--crimson-core, #8b0000) !important;
+  color: #ffffff !important;
+  border-color: var(--crimson-core, #8b0000) !important;
+  box-shadow: 0 2px 8px rgba(139, 0, 0, 0.28) !important;
+  font-weight: 750 !important;
 }

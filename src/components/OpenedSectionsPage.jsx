@@ -342,10 +342,10 @@ export default function OpenedSectionsPage({
                   {isChair ? (
                     canAdminManageCourse(currentUser?.email, sec, consultations) ? (
                       <select
-                        className="chair-status-select"
+                        className={`chair-status-select action-select-${String(sec.actionType || 'open').toLowerCase()}`}
                         value={sec.actionType}
                         onChange={e => handleActionChange(sec, e.target.value)}
-                        style={{ fontSize: '0.74rem', padding: '0.32rem 0.6rem', fontWeight: 700, borderColor: 'var(--emerald-core)', color: 'var(--emerald-core)' }}
+                        data-action={sec.actionType}
                       >
                         <option value="OPEN">Open Section</option>
                         <option value="CONSULTATION">For Consultation</option>
@@ -499,10 +499,10 @@ export default function OpenedSectionsPage({
                       {isChair ? (
                         canAdminManageCourse(currentUser?.email, sec, consultations) ? (
                           <select
-                            className="chair-status-select"
+                            className={`chair-status-select action-select-${String(sec.actionType || 'consultation').toLowerCase()}`}
                             value={sec.actionType}
                             onChange={e => handleActionChange(sec, e.target.value)}
-                            style={{ fontSize: '0.74rem', padding: '0.32rem 0.6rem', fontWeight: 700, borderColor: '#d97706', color: '#d97706' }}
+                            data-action={sec.actionType}
                           >
                             <option value="CONSULTATION">For Consultation</option>
                             <option value="OPEN">Open Section</option>

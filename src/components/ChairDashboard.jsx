@@ -652,26 +652,24 @@ export default function ChairDashboard({
 
   return (
     <div style={{ maxWidth: '1180px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-      {/* Clean Page Header */}
-      <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', flexWrap: 'wrap', gap: '1rem' }}>
-        <div>
+      {/* Clean Page Header with Split Hero Layout */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '1.25rem' }}>
+        <div style={{ flex: '1 1 540px' }}>
           <div style={{
             display: 'inline-flex',
             alignItems: 'center',
             gap: '0.5rem',
-            padding: '0.3rem 0.85rem',
+            padding: '0.32rem 0.85rem',
             borderRadius: '999px',
             background: hasAdminAccess ? 'rgba(185, 28, 28, 0.08)' : 'rgba(217, 119, 6, 0.08)',
             border: `1px solid ${hasAdminAccess ? 'rgba(185, 28, 28, 0.2)' : 'rgba(217, 119, 6, 0.2)'}`,
             color: hasAdminAccess ? 'var(--crimson-bright)' : '#d97706',
             fontSize: '0.75rem',
-            fontWeight: 700,
+            fontWeight: 750,
             marginBottom: '0.5rem'
           }}>
             <ShieldCheck size={14} />
-            <span>{hasAdminAccess ? 'SOIT System Administration' : `${effectiveAdminDept} Program Chair`}</span>
-            <span style={{ opacity: 0.35 }}>•</span>
-            <span style={{ color: 'var(--text-secondary)', fontWeight: 600 }}>{myInitialProfile.name}</span>
+            <span>{hasAdminAccess ? 'SOIT System Administrator' : `${myInitialProfile.name} (${effectiveAdminDept})`}</span>
             <span style={{ opacity: 0.35 }}>•</span>
             <span style={{ color: 'var(--text-muted)', fontFamily: 'var(--font-mono)', fontSize: '0.72rem' }}>{activeAdminEmail}</span>
           </div>
@@ -683,7 +681,7 @@ export default function ChairDashboard({
           </p>
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', flexWrap: 'wrap' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
           <button
             type="button"
             className="btn-secondary-ghost"
@@ -1040,24 +1038,10 @@ export default function ChairDashboard({
                       <td style={{ whiteSpace: 'nowrap' }}>
                         {canAdminManageCourse(activeAdminEmail, course, consultations) ? (
                           <select
-                            className="chair-status-select"
+                            className={`chair-status-select action-select-${String(currentAction || 'closed').toLowerCase()}`}
                             value={currentAction}
                             onChange={e => handleCourseActionSelect(course, e.target.value)}
-                            style={{
-                              fontWeight: 700,
-                              borderColor:
-                                currentAction === 'OPEN'
-                                  ? 'var(--emerald-core)'
-                                  : currentAction === 'CONSULTATION'
-                                  ? '#d97706'
-                                  : 'var(--border-medium)',
-                              color:
-                                currentAction === 'OPEN'
-                                  ? 'var(--emerald-core)'
-                                  : currentAction === 'CONSULTATION'
-                                  ? '#d97706'
-                                  : 'var(--text-pure)'
-                            }}
+                            data-action={currentAction}
                           >
                             <option value="CLOSED">Close / Hide Section</option>
                             <option value="OPEN">Open Section</option>
