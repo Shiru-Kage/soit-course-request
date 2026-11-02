@@ -175,7 +175,7 @@ export async function verifyStudentCredentials(email, password) {
     return { success: false, error: 'Please enter both your MyMapúa email and password.' };
   }
 
-  // Try Cloud Firestore first for cross-device authentication
+  // 1. Try Cloud Firestore first for cross-device authentication
   try {
     const db = getFirebaseDb();
     if (db) {
@@ -188,7 +188,7 @@ export async function verifyStudentCredentials(email, password) {
           local.push(student);
           saveLocalStudents(local);
           return { success: true, student: sanitizeStudentSession(student) };
-        } else {
+        } else if (student && student.password) {
           return { success: false, error: 'Incorrect password. Please verify your credentials or reset password.' };
         }
       }
@@ -197,9 +197,54 @@ export async function verifyStudentCredentials(email, password) {
     console.warn('Checking local cache for student login:', err);
   }
 
-  // Fallback to local
+  // 2. Try Server API (/api/students/login)
+  try {
+    const res = await fetch('/api/students/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: cleanEmail, password: rawPass })
+    });
+    if (res.ok) {
+      const data = await res.json();
+      if (data && data.success && data.student) {
+        const local = getLocalStudents().filter(s => String(s?.email || '').toLowerCase() !== cleanEmail);
+        local.push(data.student);
+        saveLocalStudents(local);
+        return { success: true, student: sanitizeStudentSession(data.student) };
+      }
+    }
+  } catch (e) {}
+
+  // 3. Fallback to local accounts
   const students = getLocalStudents();
-  const match = students.find(s => String(s?.email || '').toLowerCase() === cleanEmail);
+  let match = students.find(s => String(s?.email || '').toLowerCase() === cleanEmail);
+
+  // If not found in students cache, recover details from petitions submitted under this email
+  if (!match) {
+    try {
+      const reqsRaw = localStorage.getItem('soit_course_requests');
+      if (reqsRaw) {
+        const parsedReqs = JSON.parse(reqsRaw);
+        if (Array.isArray(parsedReqs)) {
+          const reqMatch = parsedReqs.find(r => String(r.email || '').toLowerCase() === cleanEmail);
+          if (reqMatch) {
+            match = {
+              email: cleanEmail,
+              studentNumber: reqMatch.studentNumber || '',
+              firstName: reqMatch.firstName || '',
+              lastName: reqMatch.lastName || '',
+              program: reqMatch.program || 'CS',
+              unitsLeft: reqMatch.unitsLeft || '0',
+              password: rawPass
+            };
+            students.push(match);
+            saveLocalStudents(students);
+          }
+        }
+      }
+    } catch (e) {}
+  }
+
   if (!match) {
     return {
       success: false,
@@ -241,7 +286,7 @@ export async function updateStudentProfile(email, updates) {
     }).catch(() => {});
   } catch (e) {}
 
-  // 3. Update localStorage
+  // 3. Update localStorage (upsert)
   const students = getLocalStudents();
   let updatedStudent = null;
   const next = students.map(s => {
@@ -251,11 +296,23 @@ export async function updateStudentProfile(email, updates) {
     }
     return s;
   });
+  if (!updatedStudent) {
+    updatedStudent = { email: cleanEmail, ...updates };
+    next.push(updatedStudent);
+  }
   saveLocalStudents(next);
 
-  if (!updatedStudent) {
-    return { success: false, error: 'Student profile not found.' };
-  }
+  // 4. Also update live user session if this email matches active session
+  try {
+    const cur = localStorage.getItem('soit_user_session');
+    if (cur) {
+      const parsed = JSON.parse(cur);
+      if (String(parsed?.email || '').toLowerCase() === cleanEmail) {
+        localStorage.setItem('soit_user_session', JSON.stringify({ ...parsed, ...updates }));
+      }
+    }
+  } catch (e) {}
+
   return { success: true, student: sanitizeStudentSession(updatedStudent) };
 }
 
@@ -310,6 +367,15 @@ export async function adminUpdateStudentAccount(targetEmail, updates) {
     console.warn('Firestore update failed, persisting locally:', e);
   }
 
+  // Update server
+  try {
+    fetch('/api/students/profile', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: cleanEmail, ...updates })
+    }).catch(() => {});
+  } catch (e) {}
+
   const students = getLocalStudents();
   let found = false;
   const next = students.map(s => {
@@ -325,6 +391,18 @@ export async function adminUpdateStudentAccount(targetEmail, updates) {
   }
 
   saveLocalStudents(next);
+
+  // Update active session if target student is currently logged in
+  try {
+    const cur = localStorage.getItem('soit_user_session');
+    if (cur) {
+      const parsed = JSON.parse(cur);
+      if (String(parsed?.email || '').toLowerCase() === cleanEmail) {
+        localStorage.setItem('soit_user_session', JSON.stringify({ ...parsed, ...updates }));
+      }
+    }
+  } catch (e) {}
+
   return { success: true, students: next };
 }
 

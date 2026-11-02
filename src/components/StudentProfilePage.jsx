@@ -29,13 +29,61 @@ export default function StudentProfilePage({
 
   useEffect(() => {
     if (currentUser) {
-      setFormData({
-        studentNumber: currentUser.studentNumber || '',
-        email: currentUser.email || '',
-        firstName: currentUser.firstName || '',
-        lastName: currentUser.lastName || '',
-        program: currentUser.program || '',
-        unitsLeft: currentUser.unitsLeft ?? ''
+      setFormData(prev => {
+        let sn = currentUser.studentNumber || prev.studentNumber || '';
+        let em = currentUser.email || prev.email || '';
+        let fn = currentUser.firstName || prev.firstName || '';
+        let ln = currentUser.lastName || prev.lastName || '';
+        let prog = currentUser.program || prev.program || '';
+        let units = (currentUser.unitsLeft !== undefined && currentUser.unitsLeft !== '') ? currentUser.unitsLeft : (prev.unitsLeft || '');
+
+        // If any core fields are missing, auto-recover from registered student accounts or petition records
+        if (!fn || !ln || !prog || !sn) {
+          try {
+            const cleanEmail = String(em || currentUser.email || '').trim().toLowerCase();
+            const raw = localStorage.getItem('soit_student_accounts_v1');
+            if (raw) {
+              const students = JSON.parse(raw);
+              if (Array.isArray(students)) {
+                const match = students.find(s => String(s?.email || '').toLowerCase() === cleanEmail);
+                if (match) {
+                  sn = sn || match.studentNumber || '';
+                  fn = fn || match.firstName || '';
+                  ln = ln || match.lastName || '';
+                  prog = prog || match.program || '';
+                  if (units === '' && match.unitsLeft !== undefined) units = match.unitsLeft;
+                }
+              }
+            }
+
+            // Also check submitted petition records
+            if (!fn || !ln || !prog || !sn) {
+              const reqRaw = localStorage.getItem('soit_course_requests');
+              if (reqRaw) {
+                const reqs = JSON.parse(reqRaw);
+                if (Array.isArray(reqs)) {
+                  const rMatch = reqs.find(r => String(r.email || '').toLowerCase() === cleanEmail);
+                  if (rMatch) {
+                    sn = sn || rMatch.studentNumber || '';
+                    fn = fn || rMatch.firstName || '';
+                    ln = ln || rMatch.lastName || '';
+                    prog = prog || rMatch.program || '';
+                    if (units === '' && rMatch.unitsLeft !== undefined) units = rMatch.unitsLeft;
+                  }
+                }
+              }
+            }
+          } catch (e) {}
+        }
+
+        return {
+          studentNumber: sn,
+          email: em,
+          firstName: fn,
+          lastName: ln,
+          program: prog,
+          unitsLeft: units
+        };
       });
     }
   }, [currentUser]);

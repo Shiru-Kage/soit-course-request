@@ -84,5 +84,9 @@ export function getClusterForProgram(progCode) {
 
 export function getProgramsForCluster(clusterDept) {
   const dept = String(clusterDept || '').trim().toUpperCase();
-  return SOIT_PROGRAMS.filter(p => getClusterForProgram(p.code) === dept);
+  if (!dept || dept === 'SOIT' || dept === 'ALL' || dept === 'ADMIN') {
+    return SOIT_PROGRAMS;
+  }
+  const filtered = SOIT_PROGRAMS.filter(p => getClusterForProgram(p.code) === dept);
+  return filtered.length > 0 ? filtered : SOIT_PROGRAMS;
 }

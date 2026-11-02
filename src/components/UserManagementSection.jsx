@@ -365,7 +365,22 @@ export default function UserManagementSection({
 
     try {
       if (editingUser.userCategory === 'student') {
-        const { email, firstName, lastName, studentNumber, program, unitsLeft } = editingUser.data;
+        const studentObj = {
+          email: editingUser.email,
+          firstName: editingUser.firstName,
+          lastName: editingUser.lastName,
+          studentNumber: editingUser.studentNumber,
+          program: editingUser.program,
+          unitsLeft: editingUser.unitsLeft,
+          ...(editingUser.data || {})
+        };
+        const email = String(studentObj.email || '').trim().toLowerCase();
+        const firstName = String(studentObj.firstName || '').trim();
+        const lastName = String(studentObj.lastName || '').trim();
+        const studentNumber = String(studentObj.studentNumber || '').trim();
+        const program = String(studentObj.program || 'CS').trim();
+        const unitsLeft = String(studentObj.unitsLeft ?? '0').trim();
+
         const res = await adminUpdateStudentAccount(email, {
           firstName,
           lastName,
@@ -382,7 +397,15 @@ export default function UserManagementSection({
         }
       } else {
         // Faculty or Chair
-        const { email, name, dept } = editingUser.data;
+        const facObj = {
+          email: editingUser.email,
+          name: editingUser.name,
+          dept: editingUser.dept,
+          ...(editingUser.data || {})
+        };
+        const email = String(facObj.email || '').trim().toLowerCase();
+        const name = String(facObj.name || '').trim();
+        const dept = String(facObj.dept || 'CS').trim();
         const res = await adminUpdateFacultyUser(email, { name, dept }, activeAdminEmail);
         if (res.success) {
           showMsg(res.message, 'success');
@@ -1079,7 +1102,19 @@ export default function UserManagementSection({
                             <>
                               <button
                                 type="button"
-                                onClick={() => setEditingUser(u)}
+                                onClick={() => setEditingUser({
+                                  ...u,
+                                  data: {
+                                    email: u.email || '',
+                                    firstName: u.firstName || '',
+                                    lastName: u.lastName || '',
+                                    studentNumber: u.studentNumber || '',
+                                    program: u.program || 'CS',
+                                    unitsLeft: String(u.unitsLeft || '0'),
+                                    name: u.name || '',
+                                    dept: u.dept || 'CS'
+                                  }
+                                })}
                                 style={{
                                   display: 'inline-flex',
                                   alignItems: 'center',
@@ -1270,7 +1305,7 @@ export default function UserManagementSection({
                       })}
                       style={{ fontWeight: 700 }}
                     >
-                      {(hasAdminAccess ? SOIT_PROGRAMS : getProgramsForCluster(effectiveAdminDept)).map(prog => (
+                      {(hasAdminAccess || effectiveAdminDept === 'SOIT' ? SOIT_PROGRAMS : getProgramsForCluster(effectiveAdminDept)).map(prog => (
                         <option key={prog.code} value={prog.code}>
                           {prog.code} — {prog.name}
                         </option>
@@ -1721,7 +1756,7 @@ export default function UserManagementSection({
                       onChange={e => setNewStudentData({ ...newStudentData, program: e.target.value })}
                       style={{ fontWeight: 700 }}
                     >
-                      {(hasAdminAccess ? SOIT_PROGRAMS : getProgramsForCluster(effectiveAdminDept)).map(prog => (
+                      {(hasAdminAccess || effectiveAdminDept === 'SOIT' ? SOIT_PROGRAMS : getProgramsForCluster(effectiveAdminDept)).map(prog => (
                         <option key={prog.code} value={prog.code}>
                           {prog.code} — {prog.name}
                         </option>

@@ -1,5 +1,15 @@
 [
   {
+    "studentNumber": "2022104624",
+    "email": "pvcabalag@mymail.mapua.edu.ph",
+    "firstName": "Polycarpio",
+    "lastName": "Cabalag",
+    "program": "EMC",
+    "unitsLeft": "3",
+    "password": "password",
+    "createdAt": "2026-10-31T04:34:40.483Z"
+  },
+  {
     "studentNumber": "2022104625",
     "email": "pcabalag@mymail.mapua.edu.ph",
     "firstName": "Juan Miguel",
