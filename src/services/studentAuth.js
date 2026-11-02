@@ -375,13 +375,16 @@ export async function adminDeleteStudentAccount(targetEmail) {
 }
 
 export function sanitizeStudentSession(s) {
+  if (!s) return null;
+  const sn = s.studentNumber || s.student_number || s.studentId || s.sn || '';
+  const em = s.email || s.studentEmail || '';
   return {
     role: 'student',
-    studentNumber: s.studentNumber,
-    email: s.email,
-    firstName: s.firstName,
-    lastName: s.lastName,
-    program: s.program,
+    studentNumber: String(sn || '').trim(),
+    email: String(em || '').trim().toLowerCase(),
+    firstName: s.firstName || '',
+    lastName: s.lastName || '',
+    program: s.program || '',
     unitsLeft: String(s.unitsLeft ?? '')
   };
 }

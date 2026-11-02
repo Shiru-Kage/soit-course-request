@@ -75,13 +75,30 @@ export default function ChairDashboard({
   onDeleteArchivedPetitionRecord,
   initialSubTab
 }) {
-  const [activeTab, setActiveTab] = useState(initialSubTab || 'courses'); // 'courses' | 'roster' | 'add_course' | 'consultation' | 'admins' | 'quarters'
+  const [activeTab, setActiveTab] = useState(() => {
+    if (initialSubTab) return initialSubTab;
+    try {
+      const saved = localStorage.getItem('soit_chair_subtab');
+      if (saved && ['courses', 'roster', 'add_course', 'consultation', 'admins', 'quarters'].includes(saved)) {
+        return saved;
+      }
+    } catch {}
+    return 'courses';
+  });
 
   useEffect(() => {
     if (initialSubTab) {
       setActiveTab(initialSubTab);
     }
   }, [initialSubTab]);
+
+  useEffect(() => {
+    try {
+      if (activeTab) {
+        localStorage.setItem('soit_chair_subtab', activeTab);
+      }
+    } catch {}
+  }, [activeTab]);
   const [searchCourses, setSearchCourses] = useState('');
   const [searchRoster, setSearchRoster] = useState('');
   const [filterProgram, setFilterProgram] = useState('ALL');

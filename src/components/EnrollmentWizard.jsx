@@ -76,20 +76,6 @@ export default function EnrollmentWizard({
     });
   }, [coursesWithDemand, selectedDept, searchQuery]);
 
-  // Top demand courses for the sidebar
-  const topDemandCourses = useMemo(() => {
-    return [...coursesWithDemand]
-      .sort((a, b) => (b.count || b.requestCount || 0) - (a.count || a.requestCount || 0))
-      .slice(0, 6);
-  }, [coursesWithDemand]);
-
-  const metrics = useMemo(() => {
-    const totalPetitions = coursesWithDemand.reduce((acc, c) => acc + (c.count || c.requestCount || 0), 0);
-    const metThreshold = coursesWithDemand.filter(c => (c.count || c.requestCount || 0) >= MIN_STUDENT_THRESHOLD).length;
-    const nearThreshold = coursesWithDemand.filter(c => (c.count || c.requestCount || 0) >= 10 && (c.count || c.requestCount || 0) < MIN_STUDENT_THRESHOLD).length;
-    return { totalPetitions, metThreshold, nearThreshold };
-  }, [coursesWithDemand]);
-
   // Live validation for Step 2 (Add Missing Course)
   const unlistedPreview = useMemo(() => {
     if (!formData.customCourseCode && !formData.customCourseTitle) {
@@ -239,87 +225,6 @@ export default function EnrollmentWizard({
     <div className="enrollment-workstation" style={{ marginTop: '0.5rem' }}>
       <div className="workstation-layout">
         
-        {/* =========================================================================
-            LEFT SIDEBAR: CLEAN TOP DEMAND OVERVIEW
-            ========================================================================= */}
-        <aside className="command-dock">
-          <div>
-            <h3 style={{ fontSize: '0.95rem', fontWeight: 700, color: 'var(--text-pure)', marginBottom: '0.2rem' }}>
-              Most Requested Courses
-            </h3>
-            <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
-              15 students needed to open a section
-            </p>
-          </div>
-
-          {/* Simple 3-Metric Row */}
-          <div style={{ 
-            display: 'grid', 
-            gridTemplateColumns: 'repeat(3, 1fr)', 
-            gap: '0.5rem',
-            background: 'var(--bg-subtle)',
-            padding: '0.75rem',
-            borderRadius: 'var(--radius-md)',
-            border: '1px solid var(--border-hairline)',
-            textAlign: 'center'
-          }}>
-            <div>
-              <div style={{ fontSize: '1.1rem', fontWeight: 800, color: 'var(--text-pure)' }}>
-                {metrics.totalPetitions}
-              </div>
-              <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontWeight: 500 }}>Requests</div>
-            </div>
-            <div>
-              <div style={{ fontSize: '1.1rem', fontWeight: 800, color: 'var(--emerald-core)' }}>
-                {metrics.metThreshold}
-              </div>
-              <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontWeight: 500 }}>Reached 15</div>
-            </div>
-            <div>
-              <div style={{ fontSize: '1.1rem', fontWeight: 800, color: 'var(--gold-bright)' }}>
-                {metrics.nearThreshold}
-              </div>
-              <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontWeight: 500 }}>Almost Full</div>
-            </div>
-          </div>
-
-          {/* Clean Course List */}
-          <div className="demand-radar-list">
-            {topDemandCourses.map((c, idx) => {
-              const count = c.count || c.requestCount || 0;
-              const pct = Math.min(100, Math.round((count / MIN_STUDENT_THRESHOLD) * 100));
-              const isMet = count >= MIN_STUDENT_THRESHOLD;
-              const isSelected = !submittedReceipt && formData.courseCode === c.code;
-
-              return (
-                <div 
-                  key={c.id || `${c.code}-${idx}`} 
-                  className={`radar-item ${isMet ? 'met' : ''}`}
-                  style={isSelected ? { borderColor: 'var(--crimson-bright)', background: 'var(--bg-active)' } : {}}
-                  onClick={() => {
-                    handleSelectCourse(c);
-                    if (submittedReceipt || step === 2) setStep(1);
-                  }}
-                >
-                  <div className="radar-header">
-                    <span className="radar-code">{c.code}</span>
-                    <span className="radar-count">
-                      <strong style={{ color: isMet ? 'var(--emerald-core)' : 'var(--text-pure)' }}>{count}</strong> / {MIN_STUDENT_THRESHOLD}
-                    </span>
-                  </div>
-                  <div className="radar-title">{c.title}</div>
-                  <div className="micro-meter">
-                    <div 
-                      className={`micro-fill ${isMet ? 'met' : ''}`} 
-                      style={{ width: `${pct}%` }}
-                    />
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </aside>
-
         {/* =========================================================================
             MAIN CARD: CLEAN 3-STEP WORKFLOW
             ========================================================================= */}

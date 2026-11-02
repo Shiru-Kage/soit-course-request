@@ -44,33 +44,87 @@ export default function App() {
   // Theme & Font
   const [theme, setTheme] = useState(() => localStorage.getItem('soit_theme') || 'mapua');
 
-  // Role Session (Requires authenticated email/studentNumber for students, or chair email for faculty)
+  // Role Session (Persisted in localStorage; survives full page refreshes)
   const [currentUser, setCurrentUser] = useState(() => {
     try {
       const saved = localStorage.getItem('soit_user_session');
       if (!saved) return null;
       const parsed = JSON.parse(saved);
-      if (parsed?.role === 'student' && (!parsed.email || !parsed.studentNumber)) {
-        localStorage.removeItem('soit_user_session');
-        return null;
+      if (!parsed || typeof parsed !== 'object') return null;
+
+      if (parsed.role === 'student') {
+        const email = parsed.email || parsed.studentEmail;
+        const sn = parsed.studentNumber || parsed.student_number || parsed.studentId;
+        if (!email && !sn) {
+          localStorage.removeItem('soit_user_session');
+          return null;
+        }
+        return {
+          ...parsed,
+          role: 'student',
+          email: String(email || '').trim().toLowerCase(),
+          studentNumber: String(sn || '').trim()
+        };
       }
+
+      if (parsed.role === 'chair') {
+        if (!parsed.email) {
+          localStorage.removeItem('soit_user_session');
+          return null;
+        }
+        return {
+          ...parsed,
+          role: 'chair',
+          email: String(parsed.email || '').trim().toLowerCase()
+        };
+      }
+
       return parsed;
     } catch {
       return null;
     }
   });
 
+  // Active Tab Session (Restores exact active tab on refresh for the authenticated session)
   const [currentTab, setCurrentTab] = useState(() => {
     try {
-      const saved = localStorage.getItem('soit_user_session');
-      if (!saved) return 'login';
-      const u = JSON.parse(saved);
-      if (u?.role === 'student' && (!u.email || !u.studentNumber)) return 'login';
-      return u?.role === 'chair' ? 'chair' : 'request';
+      const savedUser = localStorage.getItem('soit_user_session');
+      if (!savedUser) return 'login';
+      const parsedUser = JSON.parse(savedUser);
+      if (!parsedUser) return 'login';
+
+      const savedTab = localStorage.getItem('soit_active_tab');
+      if (savedTab && savedTab !== 'login') {
+        if (parsedUser.role === 'chair') {
+          const validChairTabs = ['chair', 'opened', 'demand', 'track', 'chair_archive'];
+          if (validChairTabs.includes(savedTab)) return savedTab;
+          return 'chair';
+        } else if (parsedUser.role === 'student') {
+          const validStudentTabs = ['request', 'profile', 'opened', 'track', 'demand'];
+          if (validStudentTabs.includes(savedTab)) return savedTab;
+          return 'request';
+        }
+      }
+
+      return parsedUser.role === 'chair' ? 'chair' : 'request';
     } catch {
       return 'login';
     }
   });
+
+  // Synchronize active tab to localStorage
+  useEffect(() => {
+    if (currentTab) {
+      localStorage.setItem('soit_active_tab', currentTab);
+    }
+  }, [currentTab]);
+
+  // Synchronize user session to localStorage
+  useEffect(() => {
+    if (currentUser) {
+      localStorage.setItem('soit_user_session', JSON.stringify(currentUser));
+    }
+  }, [currentUser]);
   const [requests, setRequests] = useState([]);
   const [customCourses, setCustomCourses] = useState(() => getCustomCourses());
   const [openedSections, setOpenedSections] = useState(() => getOpenedSections());
@@ -186,15 +240,16 @@ export default function App() {
   const handleLoginStudent = (studentProfile) => {
     const user = {
       role: 'student',
-      studentNumber: studentProfile.studentNumber,
-      email: studentProfile.email,
-      firstName: studentProfile.firstName,
-      lastName: studentProfile.lastName,
-      program: studentProfile.program,
+      studentNumber: String(studentProfile.studentNumber || studentProfile.student_number || studentProfile.studentId || '').trim(),
+      email: String(studentProfile.email || '').trim().toLowerCase(),
+      firstName: studentProfile.firstName || '',
+      lastName: studentProfile.lastName || '',
+      program: studentProfile.program || '',
       unitsLeft: String(studentProfile.unitsLeft ?? '')
     };
     setCurrentUser(user);
     localStorage.setItem('soit_user_session', JSON.stringify(user));
+    localStorage.setItem('soit_active_tab', 'request');
     setCurrentTab('request');
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
@@ -213,14 +268,17 @@ export default function App() {
   };
 
   const handleLoginChair = (email) => {
-    const user = { role: 'chair', email };
+    const user = { role: 'chair', email: String(email || '').trim().toLowerCase() };
     setCurrentUser(user);
     localStorage.setItem('soit_user_session', JSON.stringify(user));
+    localStorage.setItem('soit_active_tab', 'chair');
     setCurrentTab('chair');
   };
 
   const handleLogout = () => {
     localStorage.removeItem('soit_user_session');
+    localStorage.removeItem('soit_active_tab');
+    localStorage.removeItem('soit_chair_subtab');
     setCurrentUser(null);
     setCurrentTab('login');
   };
